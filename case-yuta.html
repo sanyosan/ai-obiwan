@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DATA FILE 03 — yuta ／ 営業ナレッジ顕在化アプリ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--void:#05070D;--panel:#0B1420;--gold:#FFE81F;--blue:#4BD5EE;--red:#E23B3B;--steel:#8FA3B8;--line:#1E2B3C;--text:#D3DEE8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--void);color:var(--text);font-family:'Noto Sans JP',sans-serif;font-weight:300;line-height:1.95;padding:6vh 6vw 14vh}
+.wrap{max-width:900px;margin:0 auto}
+.mono{font-family:'JetBrains Mono',monospace}
+.crest{font-family:'JetBrains Mono',monospace;font-size:.74rem;letter-spacing:.3em;color:var(--blue);margin-bottom:2.4rem}
+h1{font-weight:500;font-size:clamp(1.9rem,4.4vw,2.9rem);line-height:1.32;letter-spacing:.02em;color:#fff;margin-bottom:.8rem}
+.sub{color:var(--steel);font-size:1rem;margin-bottom:3.4rem}
+h2{font-weight:500;font-size:clamp(1.2rem,2.4vw,1.55rem);color:var(--gold);margin:3.6rem 0 1.2rem;padding-bottom:.5rem;border-bottom:1px solid var(--line)}
+h3{font-weight:500;font-size:1.06rem;color:#fff;margin:2rem 0 .6rem}
+p{margin-bottom:1.1rem}
+ul{margin:.4rem 0 1.4rem 1.3rem}
+li{margin-bottom:.6rem}
+strong{font-weight:500;color:#fff}
+em{font-style:normal;color:var(--blue)}
+.prompt{background:var(--panel);border-left:3px solid var(--blue);padding:1.6rem 1.8rem;margin:1rem 0 2rem;white-space:pre-wrap;font-size:.94rem;color:#B9C8D6;line-height:1.9}
+.mvp{border:1px solid var(--gold);border-radius:3px;padding:1.6rem 1.8rem;margin:2rem 0;background:rgba(255,232,31,.04)}
+.mvp .t{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.16em;color:var(--gold);margin-bottom:.7rem}
+.warn{border-left:3px solid var(--red);background:rgba(226,59,59,.05);padding:1.3rem 1.6rem;margin:1.6rem 0;font-size:.95rem}
+table{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.95rem}
+th,td{text-align:left;padding:.85rem 1rem;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:500;color:var(--steel);font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.1em}
+.back{display:inline-block;margin-top:4rem;font-family:'JetBrains Mono',monospace;font-size:.8rem;letter-spacing:.12em;color:var(--blue);text-decoration:none;border:1px solid var(--line);padding:.7em 1.3em;border-radius:2px}
+.back:hover{border-color:var(--blue)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="crest">DATA FILE 03 ／ SUBJECT: yuta</div>
+<h1>営業ナレッジ<br>顕在化アプリ</h1>
+<p class="sub">配管設備営業の隠れたノウハウを、ライトに引き出す</p>
+
+<h2>のりさんが出したプロンプト</h2>
+<div class="prompt">配管設備の営業を行っている人が居ます。
+その人が持っているナレッジやノウハウ、営業の殺し文句など、隠れたナレッジをオープンにするアプリを作りたい
+ただし、そういったものに抵抗があるので、ライトに。ライトにしたい。
+
+録音ボタンを作り、さらに、質問をします。
+また、最初にカタログ等取扱商品のものを登録します
+
+ＡＩで質問を考えます。
+営業ノウハウを顕在化するために必要な質問です
+話し方や商品知識はもちろん、自分が培ってきたコツや、良い悪いなどを将来ＡＩでジャッジするためのもの
+新人教育にもなるし、お客様お問い合わせチャットボットにもなる
+ナレッジを追加追加していくためのＡＩチャットボットです
+
+obsidianを育てるというやり方もあるし、どんどんＡＩで構造データを作るやり方もあると思う。それを考えて</div>
+
+<h2>最大の地雷</h2>
+<div class="warn"><strong>ジャッジを最初に見せたら終わり。</strong>「良い悪いを将来AIでジャッジする」は価値の中核だが、営業マンにその存在を最初に知らせたら喋らなくなる。抵抗がある人に「あなたのノウハウを採点します」は最悪の入り方。<br><br>だからv1の顔はこうする。<strong>「あなたの喋りが、そのまま新人の教科書になります」</strong>。評価ではなく、貢献。ジャッジ機能はずっと後、しかも本人が自分の成長を見るためだけに使い、他人と比較しない。</div>
+
+<h2>ライトにするための設計原則</h2>
+<ul>
+<li><strong>書かせない</strong>。文字入力は一切要求しない。録音ボタン1個だけ</li>
+<li><strong>1回1問</strong>。「今日は1問だけです」と言い切る。10問並べたら開かない</li>
+<li><strong>答えなくていい</strong>。パスボタンを大きく置く。義務にした瞬間に止まる</li>
+<li><strong>その日のうちに成果が返る</strong>。喋った内容が要約されて「これ、新人に渡せますよ」と戻ってくる。手応えが継続を作る</li>
+</ul>
+
+<h2>F1 ｜ 商品登録（土台）</h2>
+<p>カタログPDF、価格表、型番一覧を放り込む。これが先にあると、AIの質問が抽象論から<strong>具体</strong>に変わる。</p>
+<ul>
+<li>「営業のコツを教えてください」→ 誰も答えられない</li>
+<li>「このバルブ、競合品と比べて何を推してます？」→ 一瞬で喋れる</li>
+</ul>
+<p>抵抗を下げる最大のコツが、実はここ。</p>
+
+<h2>F2 ｜ AIが質問を作る（心臓部）</h2>
+<p>カタログと過去の録音から、次の1問を生成する。質問の軸は4系統。</p>
+<table>
+<tr><th>軸</th><th>質問例</th><th>何が取れるか</th></tr>
+<tr><td>商品知識</td><td>この型番、どんな現場に入れます？</td><td>適用条件、選定基準</td></tr>
+<tr><td>話し方・殺し文句</td><td>値段が高いと言われたら何て返します？</td><td>反論処理のスクリプト</td></tr>
+<tr><td>判断のコツ</td><td>この案件、受けない方がいいと思った瞬間は？</td><td>暗黙知の中核</td></tr>
+<tr><td>失敗</td><td>過去に一番痛かった見積ミスは？</td><td>教育価値が最も高い</td></tr>
+</table>
+<p>4番目が一番のお宝だが、序盤で聞くと閉じる。<strong>信頼が溜まってから出す</strong>質問リストとして分けて管理する。</p>
+
+<h2>F3 ｜ 出口3つ</h2>
+<ul>
+<li><strong>新人教育</strong>：質問→ベテランの回答で並んだFAQ。そのまま研修教材</li>
+<li><strong>顧客向けチャットボット</strong>：製品の選び方に答える</li>
+<li><strong>将来のAIジャッジ</strong>：良い商談の型を学習</li>
+</ul>
+<div class="warn"><strong>絶対にやること。</strong>社内向けと顧客向けを物理的に分離する。「あの客はこう言えば落ちる」が顧客向けボットから漏れたら会社が終わる。ナレッジ1件ごとに公開レベルのフラグを必須にし、デフォルトは社内限定。</div>
+
+<h2>Obsidian方式か、構造データ方式か</h2>
+<p>結論、<strong>両方使う。層で分けるのが正解。</strong></p>
+<h3>原石層はObsidian</h3>
+<p>録音の文字起こしをそのままmarkdownで放り込む。理由は、人間が読めて、後から意味が変わっても壊れないから。営業マンの喋りは<em>脱線が価値</em>で、「そういえば昔こんな客が」の枝葉に本命の暗黙知が混ざっている。最初からDBのカラムに切ると、そこが捨てられる。</p>
+<h3>出口層は構造データ</h3>
+<p>チャットボットとAIジャッジは精度が要るので、markdownを読ませるだけでは足りない。Claudeに原石を読ませて、次のJSONに落とす。</p>
+<div class="prompt">{ 製品ID, 質問, 回答, 適用条件, 反論パターン, 公開レベル, 発言者, 日付 }</div>
+<p>つまり<strong>原石はObsidianで人間が読む形、出口は構造データで機械が使う形</strong>。変換はClaudeがやる。三幕構成（集める→育てる→使う）と同じ形。</p>
+<div class="warn">のりさん自身のVaultとは<strong>別Vault</strong>にする。他人のナレッジで、しかも会社の資産。混ぜると権利関係が後で必ず揉める。</div>
+
+<h2>問題数と時間の設計</h2>
+<p>本人が自分のナレッジを出す場合、抵抗の壁がない。制約は心理ではなく、<strong>時間と網羅率</strong>になる。</p>
+<ul>
+<li><strong>1問あたり2〜4分</strong>。90秒に縛ると浅い答えしか出ない。深掘りした方が価値が出る</li>
+<li><strong>1セッション15〜25分／5〜7問</strong>。30分を超えると後半の答えが雑になる</li>
+<li><strong>1日1セッション、週5日</strong></li>
+</ul>
+<table>
+<tr><th>項目</th><th>数</th></tr>
+<tr><td>主力商品（ABC分析のA・B）</td><td>20品目</td></tr>
+<tr><td>質問の軸</td><td>4系統</td></tr>
+<tr><td><strong>総質問数</strong></td><td><strong>80問</strong></td></tr>
+<tr><td>所要時間（1問3分）</td><td>240分＝4時間</td></tr>
+<tr><td><strong>完了までの日数（1日20分）</strong></td><td><strong>約12日</strong></td></tr>
+</table>
+<p>「無限に喋ってください」は始まらないが、「12日でひと通り終わります」なら着手できる。</p>
+<h3>密度は2周に分ける</h3>
+<ul>
+<li><strong>1周目：浅く広く（80問）</strong>。全商品・全軸を1問ずつ。ここで第一版の教科書が完成する</li>
+<li><strong>2周目：深く狭く</strong>。1周目の回答をClaudeが読んで、薄い箇所・矛盾している箇所だけを狙って追い質問を生成。ここで暗黙知の核心が出る</li>
+</ul>
+<p>1周目が終わった時点で成果物が完成するので、途中で止まっても教科書は残る。<strong>「終わらない不安」が消える</strong>のが効く。</p>
+<h3>進捗を見せる</h3>
+<ul>
+<li>商品×軸のマトリクスを塗り絵にする。80マスが埋まっていく</li>
+<li>埋まった率と、残り日数の目安を常に表示</li>
+<li>1周目完走で1回、明確に完成を宣言する</li>
+</ul>
+<p>商品数と軸数を入れたら質問総数と日数が自動計算される形にしておく。配管で80問、印刷業なら工程が多くて150問、士業なら商品ではなく案件パターンで切る。</p>
+
+<h2>フェーズ</h2>
+<table>
+<tr><th>PHASE</th><th>内容</th></tr>
+<tr><td class="mono">v1</td><td>カタログ登録＋録音1問＋文字起こし→Obsidian格納。出口は「新人向けFAQが1枚できた」だけ</td></tr>
+<tr><td class="mono">v2</td><td>AIが質問を自動生成、蓄積が進む。構造データへの変換開始</td></tr>
+<tr><td class="mono">v3</td><td>顧客向けチャットボット（公開レベル分離済みのデータのみ）</td></tr>
+<tr><td class="mono">v4</td><td>AIジャッジ（本人の成長可視化のみ、他人と比較しない）</td></tr>
+</table>
+<p>v1は単一HTMLでいける。録音ボタン、質問1個、パスボタン。それだけ。</p>
+
+<h2>あふれ出したもの</h2>
+<p><strong>探していたのはナレッジ整理。あふれ出したのは、教育と接客だった。</strong></p>
+
+<a class="back" href="sw-seminar-deck.html">◀ RETURN TO BRIEFING</a>
+</div>
+</body>
+</html>

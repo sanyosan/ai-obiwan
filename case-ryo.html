@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DATA FILE 01 — ryo ／ デイトレード情報収集</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--void:#05070D;--panel:#0B1420;--gold:#FFE81F;--blue:#4BD5EE;--red:#E23B3B;--steel:#8FA3B8;--line:#1E2B3C;--text:#D3DEE8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--void);color:var(--text);font-family:'Noto Sans JP',sans-serif;font-weight:300;line-height:1.95;padding:6vh 6vw 14vh}
+.wrap{max-width:900px;margin:0 auto}
+.mono{font-family:'JetBrains Mono',monospace}
+.crest{font-family:'JetBrains Mono',monospace;font-size:.74rem;letter-spacing:.3em;color:var(--blue);margin-bottom:2.4rem}
+h1{font-weight:500;font-size:clamp(1.9rem,4.4vw,2.9rem);line-height:1.32;letter-spacing:.02em;color:#fff;margin-bottom:.8rem}
+.sub{color:var(--steel);font-size:1rem;margin-bottom:3.4rem}
+h2{font-weight:500;font-size:clamp(1.2rem,2.4vw,1.55rem);color:var(--gold);margin:3.6rem 0 1.2rem;padding-bottom:.5rem;border-bottom:1px solid var(--line)}
+h3{font-weight:500;font-size:1.06rem;color:#fff;margin:2rem 0 .6rem}
+p{margin-bottom:1.1rem}
+ul{margin:.4rem 0 1.4rem 1.3rem}
+li{margin-bottom:.6rem}
+strong{font-weight:500;color:#fff}
+em{font-style:normal;color:var(--blue)}
+.prompt{background:var(--panel);border-left:3px solid var(--blue);padding:1.6rem 1.8rem;margin:1rem 0 2rem;white-space:pre-wrap;font-size:.94rem;color:#B9C8D6;line-height:1.9}
+.tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.68rem;letter-spacing:.14em;padding:.35em .8em;border:1px solid var(--line);border-radius:2px;color:var(--steel);margin-bottom:1rem}
+.mvp{border:1px solid var(--gold);border-radius:3px;padding:1.6rem 1.8rem;margin:2rem 0;background:rgba(255,232,31,.04)}
+.mvp .t{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.16em;color:var(--gold);margin-bottom:.7rem}
+.warn{border-left:3px solid var(--red);background:rgba(226,59,59,.05);padding:1.3rem 1.6rem;margin:1.6rem 0;font-size:.95rem}
+table{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.95rem}
+th,td{text-align:left;padding:.85rem 1rem;border-bottom:1px solid var(--line)}
+th{font-weight:500;color:var(--steel);font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.1em}
+.back{display:inline-block;margin-top:4rem;font-family:'JetBrains Mono',monospace;font-size:.8rem;letter-spacing:.12em;color:var(--blue);text-decoration:none;border:1px solid var(--line);padding:.7em 1.3em;border-radius:2px}
+.back:hover{border-color:var(--blue)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="crest">DATA FILE 01 ／ SUBJECT: ryo</div>
+<h1>デイトレード<br>情報収集アプリ</h1>
+<p class="sub">15時30分以降の情報戦を、人が探す前に手元へ</p>
+
+<h2>のりさんが出したプロンプト</h2>
+<div class="prompt">デイトレーダーが居ました。
+デイトレードは、１５：３０を終えてから出てくる情報や、その他の情報をいかに早く集めるかがキモ
+３社のトレードアプリを見つつ、終了後は情報を集める。四季報等で企業の引けあとの情報を集める。集めてそれを調べ、トレードする。場の間も情報を見ながら買うが、Aで情報を見てBアプリで発注するときに、8874の銘柄を8884としてしまう場合もある。時間の問題。
+
+おそらくplaywriteやその他で、全部情報集めたり、アプリで自動で情報が集まる仕組みは構築できる
+集めるべきURLマスタ、銘柄コード
+そうではないときには、集めるURLから、お好みでは？というサジェストアプリはできますか？
+
+また、これまでのトレードの自分自身の履歴をUPしたら、同じような嗜好のパターンから、類似の銘柄、タイミング、日足で見ているか分足で見ているかによってサジェストしまくるアプリを構築したい。要件定義して</div>
+
+<h2>返ってきた答え</h2>
+<div class="mvp">
+<div class="t">MVP ── ここから作る</div>
+<p style="margin:0"><strong>誤発注ガード。</strong>一番お金になりそうなのはサジェストだが、一番痛いのは<em>8874を8884と打ち間違える</em>ところ。一発で数十万飛ぶのに、原因は「時間がない」だけ。技術的に最も簡単で、法的にも最もきれい。</p>
+</div>
+
+<h2>F1 ｜ 集める（情報収集エンジン）</h2>
+<p>15:30以降の引け後情報を、人が探す前に手元に揃える。</p>
+<ul>
+<li><strong>URLマスタ</strong>：銘柄別・カテゴリ別に収集先を登録（適時開示、IR、四季報、掲示板、ニュース）</li>
+<li><strong>銘柄コードマスタ</strong>：コード・社名・市場・業種・保有/監視フラグ</li>
+<li><strong>定時クロール</strong>：15:30、16:00、18:00などの時刻トリガーでPlaywrightが巡回し、差分だけ通知</li>
+<li><strong>出力</strong>：銘柄ごとの「今日出た情報」1画面。3アプリを行き来しなくていい状態</li>
+</ul>
+<div class="warn">四季報などの有料DBはスクレイピングが規約で禁止されている場合が多い。公式API・データ提供契約か、手動貼り付けを前提にした設計が安全。適時開示（TDnet）や各社IRのRSSは比較的やりやすい。</div>
+
+<h2>F2 ｜ 照合（誤発注ガード）★MVP</h2>
+<p>Aアプリで見た銘柄と、Bアプリで発注する銘柄が同一であることを、0.5秒で確認する。</p>
+<ul>
+<li><strong>コード入力 → 社名を巨大表示</strong>：8874と入れたら「ヒューリック」がドンと出る。<em>見間違いをコードではなく社名で殺す</em></li>
+<li><strong>クリップボード連携</strong>：Aで銘柄をコピーすると、ガード画面が即座に社名と現在値を表示</li>
+<li><strong>直前チェックリスト</strong>：コード／社名／売買方向／株数を1画面に並べ、確認を押すまで進めない</li>
+<li><strong>ヒヤリハットログ</strong>：「入れたけど違った」を記録。どのコードで間違えやすいか個人の癖が可視化される</li>
+</ul>
+<p>これは単一HTMLで作れる。銘柄マスタをJSONで持たせればオフラインでも動く。</p>
+
+<h2>F3 ｜ サジェスト（嗜好パターン抽出）</h2>
+<p>過去のトレード履歴から自分の癖を抽出し、条件に合う候補を絞る。</p>
+<ul>
+<li><strong>入力</strong>：証券会社の約定履歴CSV（コード、売買、日時、価格、株数）</li>
+<li><strong>特徴量</strong>：得意な業種・時価総額帯・ボラティリティ帯／保有期間の分布（＝日足派か分足派かが自動で判明する）／エントリー時刻の偏り（寄り・前場後半・引け際）／勝ちパターンと負けパターンの差</li>
+<li><strong>出力</strong>：過去の勝ちパターンに似た条件を満たす銘柄リスト。スコアと、なぜ似ているかの理由付き</li>
+</ul>
+<div class="warn"><strong>このアプリは「買え」と言わない。</strong>「あなたの過去の癖に近いのはこれ」と言うだけで、判断は人間に残す。過去パターンが未来に効く保証はゼロで、言い切るアプリは負けた瞬間に信頼が死ぬ。加えて日本では、他人に対価を取って売買助言をすると金融商品取引業（投資助言・代理業）の登録が必要になる。商品として売るなら「情報整理・履歴分析ツール」に徹する設計にし、専門家に確認すること。<br><br>また<strong>自動発注は繋がない</strong>。read-onlyに徹する。バグ1個で口座が溶ける。</div>
+
+<h2>フェーズ</h2>
+<table>
+<tr><th>PHASE</th><th>内容</th><th>形</th></tr>
+<tr><td class="mono">v1</td><td>F2 誤発注ガード＋銘柄マスタ</td><td>単一HTML</td></tr>
+<tr><td class="mono">v2</td><td>F1 URLマスタ＋定時クロール</td><td>Playwright＋Sheets</td></tr>
+<tr><td class="mono">v3</td><td>F3 履歴分析＋サジェスト</td><td>CSVインポート＋分析</td></tr>
+</table>
+<p>v1なら着席して数時間で動くものが出る。デイトレーダーに見せれば即刺さる。そこから信用を得てv2、v3へ。</p>
+
+<h2>あふれ出したもの</h2>
+<p><strong>探していたのは情報収集。あふれ出したのは、事故防止だった。</strong></p>
+
+<a class="back" href="sw-seminar-deck.html">◀ RETURN TO BRIEFING</a>
+</div>
+</body>
+</html>

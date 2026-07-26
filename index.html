@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>あふれ出す力 — マンスリーAIオビワン</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#03050A;
+  --gold:#FFE81F;
+  --saber:#6BE85A;
+  --saber-dim:#2E6B3E;
+  --holo:#5CC8F5;
+  --red:#E23B3B;
+  --steel:#8FA3B8;
+  --line:#1B2736;
+  --text:#D3DEE8;
+  --sans:'Noto Sans JP',sans-serif;
+  --disp:'Anton',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--void);color:var(--text);font-family:var(--sans);font-weight:300;-webkit-font-smoothing:antialiased}
+
+#stars,#neb{position:fixed;inset:0;pointer-events:none;z-index:0}
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none;background-size:100% auto;background-position:center top;background-repeat:no-repeat;opacity:0;transition:opacity .8s ease}
+#bg.on{opacity:.85}
+#bgveil{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:linear-gradient(90deg,rgba(3,5,10,.80) 0%,rgba(3,5,10,.42) 40%,rgba(3,5,10,.05) 72%),
+             linear-gradient(180deg,rgba(3,5,10,.30),transparent 34%,rgba(3,5,10,.62))}
+#stars{background:
+  radial-gradient(1px 1px at 12% 18%,#fff,transparent),
+  radial-gradient(1px 1px at 27% 62%,#cfe4f5,transparent),
+  radial-gradient(1px 1px at 41% 31%,#fff,transparent),
+  radial-gradient(1px 1px at 58% 77%,#bcd6ea,transparent),
+  radial-gradient(1px 1px at 69% 14%,#fff,transparent),
+  radial-gradient(1px 1px at 84% 48%,#dceaf7,transparent),
+  radial-gradient(1px 1px at 93% 82%,#fff,transparent),
+  radial-gradient(1px 1px at 7% 88%,#cfe4f5,transparent),
+  radial-gradient(1px 1px at 35% 92%,#fff,transparent),
+  radial-gradient(1.6px 1.6px at 76% 33%,#fff,transparent),
+  radial-gradient(1.6px 1.6px at 22% 40%,#fff,transparent),
+  radial-gradient(1.6px 1.6px at 63% 22%,#eaf4ff,transparent);
+  opacity:.28}
+#neb{background:radial-gradient(60% 45% at 78% 78%,rgba(107,232,90,.07),transparent 70%),radial-gradient(50% 40% at 14% 16%,rgba(92,200,245,.04),transparent 70%)}
+
+/* hyperspace streaks on slide change */
+#warp{position:fixed;inset:0;pointer-events:none;z-index:8;opacity:0}
+#warp.go{animation:warp .5s ease-out}
+#warp i{position:absolute;left:50%;top:50%;width:2px;height:44vh;background:linear-gradient(180deg,transparent,#EAF6FF);transform-origin:50% 0}
+@keyframes warp{0%{opacity:0;transform:scale(.2)}40%{opacity:.55}100%{opacity:0;transform:scale(1.9)}}
+
+.slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;padding:8vh 8vw 13vh;z-index:2}
+.slide::before{content:'';position:absolute;left:4.5vw;right:4.5vw;top:5vh;bottom:8vh;
+  background:rgba(3,5,10,.68);border-radius:6px;
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);z-index:-1}
+#top::before,#crawlSlide::before,#open1::before{display:none}
+.slide.on{display:flex;animation:in .5s ease both}
+@keyframes in{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.slide.on{animation:none}#warp{display:none}}
+
+#hud{position:fixed;bottom:2.6vh;left:8vw;right:8vw;display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;color:#3F5165;z-index:9}
+#hud .ep{color:var(--saber);opacity:.6}
+#hud .ep::before{content:'◈ '}
+
+h1,h2,p.lead,.sub,.eyebrow,ul.plain li,.ep-div .tag,.fig .cap,.dos .txt,.dos .lbl{text-shadow:0 2px 14px rgba(3,5,10,.92),0 0 34px rgba(3,5,10,.7)}
+.eyebrow{font-family:var(--mono);font-size:.74rem;letter-spacing:.26em;color:var(--saber);margin-bottom:3vh}
+h1{font-weight:900;font-size:clamp(2.1rem,5.2vw,4.2rem);line-height:1.22;color:#fff}
+h2{font-weight:700;font-size:clamp(1.7rem,3.6vw,2.8rem);line-height:1.32;color:#fff;margin-bottom:4vh}
+p.lead{font-size:clamp(1rem,1.5vw,1.26rem);line-height:2;color:#B9C8D6;max-width:46ch}
+.sub{font-size:clamp(.9rem,1.2vw,1.04rem);line-height:1.95;color:var(--steel);max-width:54ch;margin-top:3vh}
+strong{font-weight:500;color:#fff}
+em{font-style:normal;color:var(--gold)}
+.gr{color:var(--saber)}
+.rd{color:var(--red)}
+
+#open1{justify-content:center;align-items:flex-start}
+#open1 p{font-size:clamp(1.05rem,2.3vw,1.95rem);color:#5AA9E6;line-height:1.85;letter-spacing:.05em}
+
+/* TOP — 手前から奥へ */
+#top{align-items:center;justify-content:center;text-align:center;overflow:hidden;perspective:760px}
+#grid{position:absolute;left:-20%;right:-20%;bottom:-2vh;height:52vh;z-index:0;
+  background:
+    repeating-linear-gradient(90deg,rgba(107,232,90,.34) 0 1px,transparent 1px 5.2%),
+    repeating-linear-gradient(0deg,rgba(92,200,245,.30) 0 1px,transparent 1px 9%);
+  transform:perspective(340px) rotateX(76deg);transform-origin:50% 100%;
+  -webkit-mask-image:linear-gradient(180deg,transparent,#000 42%);mask-image:linear-gradient(180deg,transparent,#000 42%);opacity:0}
+.slide.on #grid{animation:gridin 1.6s .2s ease forwards,gridmove 3.4s 1.2s linear infinite}
+@keyframes gridin{to{opacity:.85}}
+@keyframes gridmove{to{background-position:0 9%,0 9%}}
+#shock{position:absolute;left:50%;top:50%;width:12vmin;height:12vmin;margin:-6vmin 0 0 -6vmin;border-radius:50%;
+  border:2px solid rgba(234,255,230,.9);box-shadow:0 0 40px rgba(107,232,90,.6),inset 0 0 30px rgba(92,200,245,.5);opacity:0;z-index:1}
+.slide.on #shock{animation:shock 1.5s .15s cubic-bezier(.1,.7,.2,1) forwards}
+@keyframes shock{0%{opacity:0;transform:scale(.2)}12%{opacity:.95}100%{opacity:0;transform:scale(16)}}
+#topInner{position:relative;z-index:2}
+.slide.on #topInner{animation:recede 9.5s cubic-bezier(.14,.6,.18,1) forwards}
+@keyframes recede{0%{transform:scale(5.2);opacity:0;filter:blur(14px)}6%{transform:scale(4.3);opacity:1;filter:blur(0)}100%{transform:scale(.2);opacity:.14;filter:blur(0)}}
+@media (prefers-reduced-motion:reduce){.slide.on #topInner{animation:none;transform:scale(.9)}.slide.on #grid,.slide.on #shock{animation:none}}
+.wordmark{font-family:var(--disp);line-height:.84;
+  font-size:clamp(3rem,13vw,10rem);
+  background:linear-gradient(102deg,#FFE81F 0%,#FFF8B0 18%,#6BE85A 36%,#5CC8F5 52%,#C77DFF 68%,#FFE81F 86%,#FFF8B0 100%);
+  background-size:280% 100%;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;
+  filter:drop-shadow(0 0 18px rgba(255,232,31,.45)) drop-shadow(0 0 46px rgba(92,200,245,.30));
+  animation:irid 7s linear infinite}
+@keyframes irid{to{background-position:280% 0}}
+.wordmark .l2{display:block;letter-spacing:.16em;font-size:.62em}
+.jptitle{font-weight:900;color:#fff;font-size:clamp(1.1rem,3.1vw,2.4rem);letter-spacing:.14em;margin-top:2.2vh;
+  background:linear-gradient(180deg,#F4F7FA,#9FB0BF);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.epline{font-family:var(--mono);font-size:clamp(.62rem,1.1vw,.86rem);letter-spacing:.4em;color:var(--saber);margin-top:2.6vh}
+
+/* event */
+#event{align-items:flex-start;justify-content:center}
+#event .badge{font-family:var(--mono);font-size:.72rem;letter-spacing:.3em;color:var(--gold);margin-bottom:3vh}
+#event .name{font-weight:900;font-size:clamp(2rem,6vw,4.6rem);line-height:1.18;color:#fff}
+#event .name span{color:var(--saber)}
+#event .when{margin-top:4.5vh;display:flex;flex-wrap:wrap;gap:1.2rem 3rem;align-items:baseline;font-family:var(--mono);font-size:clamp(.95rem,1.7vw,1.4rem);color:var(--gold);letter-spacing:.1em}
+#event .when .at{color:var(--steel)}
+.blade{margin-top:5vh;height:3px;width:0;border-radius:3px;background:linear-gradient(90deg,#EAFFE6,var(--saber));box-shadow:0 0 10px var(--saber),0 0 26px rgba(107,232,90,.5)}
+.slide.on .blade{animation:ignite 1.2s .3s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes ignite{to{width:62%}}
+#hero{margin-top:4vh;max-height:34vh;border:1px solid var(--line);border-radius:3px;display:none}
+
+/* crawl */
+#crawlSlide{padding:0;overflow:hidden}
+#crawlView{position:absolute;inset:0;perspective:400px;perspective-origin:50% 100%;overflow:hidden}
+#crawl{position:absolute;top:105%;left:50%;width:78%;
+  transform:translateX(-50%) rotateX(58deg);transform-origin:50% 100%;
+  color:var(--gold);text-align:justify;font-weight:700;
+  font-size:clamp(1rem,2.05vw,1.75rem);line-height:1.6}
+#crawl h3{text-align:center;font-size:1.24em;margin-bottom:1.5em;letter-spacing:.06em;font-weight:900}
+#crawl p{margin-bottom:1.15em}
+@media (prefers-reduced-motion:no-preference){#crawlSlide.on #crawl{animation:crawl 52s linear forwards}}
+@keyframes crawl{from{top:105%}to{top:-330%}}
+#crawlSlide::after{content:'';position:absolute;top:0;left:0;right:0;height:36%;background:linear-gradient(180deg,var(--void) 14%,transparent);pointer-events:none;z-index:3}
+
+/* chapter divider + character slot */
+.ep-div{align-items:flex-start}
+.ep-div .ep-no{font-family:var(--mono);font-size:.8rem;letter-spacing:.34em;color:var(--gold);margin-bottom:2.4vh}
+.ep-div h1{max-width:22ch}
+.ep-div .tag{margin-top:3vh;font-size:clamp(.9rem,1.2vw,1.05rem);color:var(--steel);max-width:42ch;line-height:1.9}
+.charslot{position:absolute;right:5vw;bottom:0;top:0;width:34vw;display:flex;align-items:center;justify-content:flex-end;pointer-events:none;z-index:1}
+.charslot img{max-height:74vh;max-width:100%;object-fit:contain;display:none;opacity:.9;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 22%,#000 100%);
+  mask-image:linear-gradient(90deg,transparent,#000 22%,#000 100%)}
+
+/* figure */
+.fig{padding:5vh 5vw 11vh;justify-content:flex-start}
+.fig .cap{font-family:var(--mono);font-size:.72rem;letter-spacing:.2em;color:var(--steel);margin-bottom:2vh}
+.fig img{width:100%;max-height:74vh;object-fit:contain;display:block;border:1px solid var(--line);border-radius:3px}
+
+/* kit */
+.kit{display:grid;grid-template-columns:repeat(4,1fr);gap:1.8vw;margin-top:2vh}
+.kit div{border:1px solid var(--line);border-radius:3px;padding:3vh 1.3vw;display:flex;flex-direction:column;gap:1.1vh;min-height:24vh;justify-content:flex-end;background:rgba(6,11,20,.80)}
+.kit .k{font-family:var(--mono);font-size:.66rem;letter-spacing:.16em;color:var(--saber)}
+.kit .n{font-weight:700;font-size:clamp(1rem,1.6vw,1.34rem);color:#fff;line-height:1.35}
+.kit .d{font-size:.84rem;color:var(--steel);line-height:1.7}
+
+/* hologram panel */
+.holo{position:relative;border:1px solid rgba(92,200,245,.45);border-radius:3px;padding:3.4vh 2.4vw;background:linear-gradient(180deg,rgba(92,200,245,.09),rgba(92,200,245,.02));overflow:hidden;margin-top:1vh}
+.holo::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(180deg,rgba(92,200,245,.10) 0 1px,transparent 1px 4px);pointer-events:none}
+@media (prefers-reduced-motion:no-preference){.slide.on .holo{animation:flick 5s infinite}}
+@keyframes flick{0%,96%,100%{opacity:1}97%{opacity:.72}98.5%{opacity:.93}}
+.holo .ttl{font-family:var(--mono);font-size:.72rem;letter-spacing:.22em;color:var(--holo);margin-bottom:2vh}
+.holo p{font-size:clamp(.98rem,1.42vw,1.24rem);line-height:1.95;color:#CFE6F3;max-width:52ch}
+.holo b{font-weight:500;color:#fff}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:2vw;margin-top:2vh}
+.steps div{border:1px solid var(--line);border-left:2px solid var(--saber);border-radius:0 3px 3px 0;padding:2.6vh 1.4vw;background:rgba(6,11,20,.80)}
+.steps .s{font-family:var(--mono);font-size:.66rem;letter-spacing:.16em;color:var(--saber);display:block;margin-bottom:1.2vh}
+.steps .n{font-weight:700;font-size:clamp(1rem,1.5vw,1.25rem);color:#fff;display:block;margin-bottom:1vh}
+.steps .d{font-size:.88rem;color:var(--steel);line-height:1.75}
+
+/* tools */
+.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:2vw;margin-top:2vh}
+.tools div{border:1px solid var(--line);border-radius:3px;padding:3vh 1.5vw;background:rgba(6,11,20,.80);display:flex;flex-direction:column;gap:1.1vh}
+.tools .n{font-weight:700;font-size:clamp(1rem,1.55vw,1.3rem);color:var(--gold);line-height:1.35}
+.tools .d{font-size:.88rem;color:var(--steel);line-height:1.8}
+.tools .tagline{font-family:var(--mono);font-size:.64rem;letter-spacing:.14em;color:var(--saber)}
+
+/* dossier */
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:4vw;margin-top:1vh;align-items:start}
+.dos .side{border-left:2px solid var(--line);padding-left:1.5vw}
+.dos .side.hit{border-left-color:var(--saber)}
+.dos .lbl{font-family:var(--mono);font-size:.68rem;letter-spacing:.16em;color:var(--steel);margin-bottom:1.6vh}
+.dos .side.hit .lbl{color:var(--saber)}
+.dos .q{font-size:clamp(.86rem,1.15vw,1rem);line-height:1.85;color:#A9BAC9;background:rgba(6,11,20,.86);border-left:2px solid var(--saber-dim);padding:1.4vh 1.2vw;white-space:pre-wrap;max-height:34vh;overflow:auto}
+.dos .txt{font-size:clamp(.92rem,1.3vw,1.1rem);line-height:1.85;color:#D3DEE8}
+.dos .txt b{font-weight:500;color:var(--gold)}
+a.link{display:inline-block;margin-top:2.6vh;font-family:var(--mono);font-size:.74rem;letter-spacing:.14em;color:var(--saber);text-decoration:none;border:1px solid var(--saber-dim);padding:.7em 1.2em;border-radius:2px}
+a.link:hover{border-color:var(--saber)}
+
+ul.plain{list-style:none;display:flex;flex-direction:column;gap:2.1vh;margin-top:1vh}
+ul.plain li{font-size:clamp(.98rem,1.45vw,1.26rem);line-height:1.65;padding-left:1.7em;position:relative;color:#C7D3DE}
+ul.plain li::before{content:'';position:absolute;left:0;top:.58em;width:.85em;height:2px;border-radius:2px;background:var(--saber);box-shadow:0 0 6px rgba(107,232,90,.7)}
+
+@media(max-width:840px){
+  .kit,.steps,.tools{grid-template-columns:1fr 1fr}
+  .dos{grid-template-columns:1fr;gap:3vh}
+  .dos .q{max-height:24vh}
+  .charslot{display:none}
+}
+</style>
+</head>
+<body>
+<div id="bg"></div><div id="bgveil"></div>
+<div id="stars"></div><div id="neb"></div>
+<div id="warp"></div>
+
+<!-- 1 -->
+<section class="slide on" id="open1">
+  <p>遠い昔、はるか彼方の<br>銀河系で……</p>
+</section>
+
+<!-- 2 -->
+<section class="slide" id="top">
+  <div id="grid"></div>
+  <div id="shock"></div>
+  <div id="topInner">
+    <div class="wordmark">あふれ出す<span class="l2">力</span></div>
+    <div class="jptitle">集める者の帰還</div>
+    <div class="epline">EPISODE Ⅵ</div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="slide" id="event">
+  <div class="badge">MONTHLY BRIEFING</div>
+  <div class="name">マンスリー<span>AI</span>オビワン</div>
+  <div class="when"><span>2026 / 7 / 27</span><span class="at">＠中百舌鳥</span></div>
+  <div class="blade"></div>
+  <img id="hero" src="hero.png" alt="" onload="this.style.display='block'" onerror="this.remove()">
+</section>
+
+<!-- 4 -->
+<section class="slide" id="crawlSlide">
+  <div id="crawlView">
+    <div id="crawl">
+      <h3>EPISODE Ⅵ<br>集める者の帰還</h3>
+      <p>情報が銀河を埋めつくす時代。人々は、あらゆるものを一箇所に集めようとした。テキスト、写真、音声、Webページ、手書きのメモ。緑の象の名を持つ帝国が、それを引き受けていた。</p>
+      <p>だが、集めた者を待っていたのは検索という細い通路だけだった。溜めるほど探す時間は増え、整理し直す作業に日々が溶けていった。呼び出す者は、いつも自分だった。</p>
+      <p>いま、状況が変わった。雑に放り込むだけで、勝手に読み、勝手に組み直す存在が現れたのだ。集める者は、探すことをやめてよくなった。</p>
+      <p>これは、三人の男が自分の仕事を投げ込み、探してもいなかった答えを受け取った記録である……</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="slide">
+  <div class="eyebrow">結論を先に</div>
+  <h2>あなたがやることは<br><em>「集める」だけ</em>です</h2>
+  <p class="lead">整理しなくていい。分類しなくていい。読み返さなくてもいい。<strong>放り込むところまでが人間の仕事</strong>で、その先は全部AIがやります。</p>
+  <div class="blade"></div>
+</section>
+
+<!-- 6 -->
+<section class="slide ep-div">
+  <div class="charslot"><img src="char-01.png" alt="" onload="this.style.display='block'" onerror="this.remove()"></div>
+  <div class="ep-no">CHAPTER I</div>
+  <h1>旧共和国の記録</h1>
+  <p class="tag">全部集めた時代は、すでにありました。Evernote、OneNote。思想は今日の話と全く同じです。</p>
+  <div class="blade"></div>
+</section>
+
+<!-- 7 -->
+<section class="slide fig">
+  <div class="cap">FIG.01 ／ EVERNOTE — すべてをサーバへ集める</div>
+  <img src="fig-evernote.svg" alt="テキスト・写真・音声・Webページ・手書きメモがEvernoteアプリと連携アプリを通じてノートになり、Evernoteのサーバに集約される図">
+</section>
+
+<!-- 8 -->
+<section class="slide">
+  <div class="eyebrow">なぜ、あふれなかったのか</div>
+  <h2>できたのは<br><span class="rd">検索</span>だけだった</h2>
+  <p class="lead">あれだけ整理を頑張ったのに、最後に手に入ったのは検索窓ひとつ。溜まるほど探す時間が増えて、結局<strong>作り直しに時間が溶けていく</strong>。</p>
+  <p class="sub">問題は道具ではありませんでした。<strong class="rd">主語が「人間」だった</strong>こと。呼び出すのは、いつも自分だったんです。</p>
+</section>
+
+<!-- 9 -->
+<section class="slide ep-div">
+  <div class="charslot"><img src="char-02.png" alt="" onload="this.style.display='block'" onerror="this.remove()"></div>
+  <div class="ep-no">CHAPTER II</div>
+  <h1>雑に放り込むだけ</h1>
+  <p class="tag">tldvの音声文字起こし、ウェブクリップ、資料はフォルダごと、思いついた文字列。全部そのまま投げます。</p>
+  <div class="blade"></div>
+</section>
+
+<!-- 10 -->
+<section class="slide fig">
+  <div class="cap">FIG.02 ／ 放り込むだけで、Obsidianが勝手に再構築する</div>
+  <img src="fig-obsidian.svg" alt="tldvの音声文字起こし・ウェブクリップ・資料フォルダごと・文字列を分類も整理もせずObsidianへ放り込むと、Claude Codeがタグ付け・ノート同士のつながり・要約・口調の学習を勝手に行う図">
+</section>
+
+<!-- 11 -->
+<section class="slide">
+  <div class="eyebrow">ここが昔と違う</div>
+  <h2>入れた瞬間から、<br><span class="gr">向こうが組み直す</span></h2>
+  <ul class="plain">
+    <li>tldvの文字起こしを<strong>そのまま</strong>投げる。改行も整えない</li>
+    <li>ウェブクリップも、PPTも、<strong>フォルダごと</strong>まとめて放り込む</li>
+    <li>思いついた文字列を、行き先を決めずに置く</li>
+  </ul>
+  <p class="sub">それだけで<em>タグが付き、ノート同士がつながり、要約が生まれ、口調まで覚えられていく</em>。<strong>人間が触るのは、入れるところまでです。</strong></p>
+</section>
+
+<!-- 12 -->
+<section class="slide ep-div">
+  <div class="charslot"><img src="char-03.png" alt="" onload="this.style.display='block'" onerror="this.remove()"></div>
+  <div class="ep-no">CHAPTER III</div>
+  <h1>二つの銀河</h1>
+  <p class="tag">同じ「全部集める」思想。違うのは、誰が読むか。</p>
+  <div class="blade"></div>
+</section>
+
+<!-- 13 -->
+<section class="slide fig">
+  <div class="cap">FIG.03 ／ 変わったのは主語</div>
+  <img src="fig-compare.svg" alt="昔のEvernote・OneNoteは溜める・検索する・リビルド地獄で主語は人間、今のObsidianとClaudeは雑に放り込む・勝手に再構築される・発信になるで主語はAIという対比図">
+</section>
+
+<!-- 14 -->
+<section class="slide ep-div">
+  <div class="charslot"><img src="char-04.png" alt="" onload="this.style.display='block'" onerror="this.remove()"></div>
+  <div class="ep-no">CHAPTER IV</div>
+  <h1>エージェントとは</h1>
+  <p class="tag">「勝手に組み直す」の正体です。ここだけ、少しだけ仕組みの話をします。</p>
+  <div class="blade"></div>
+</section>
+
+<!-- 15 -->
+<section class="slide">
+  <div class="eyebrow">DEFINITION</div>
+  <h2>チャットは「答える」<br>エージェントは<span class="gr">「やる」</span></h2>
+  <div class="holo">
+    <div class="ttl">◈ HOLOGRAM TRANSMISSION</div>
+    <p>普通のチャットAIは、聞かれたことに<b>答えて終わり</b>です。文章は返ってくるけれど、ファイルは1つも動かない。<br><br>エージェントは違います。<b>あなたのフォルダを自分で開いて、読んで、書き換えて、新しいファイルを作る。</b>失敗したら自分で気づいて、やり直す。人間が横で指示を出し続けなくても、目的に向かって手を動かし続けます。</p>
+  </div>
+  <p class="sub">これが、Obsidianに雑に放り込んだものが<em>勝手に</em>整理されていく理由です。誰かが手で整理しているわけではなく、<strong>エージェントが自分で読みに来ている</strong>。</p>
+</section>
+
+<!-- 16 -->
+<section class="slide">
+  <div class="eyebrow">エージェントの働き方</div>
+  <h2>3つを、ぐるぐる回す</h2>
+  <div class="steps">
+    <div><span class="s">STEP 01</span><span class="n">見る</span><span class="d">Vaultの中を自分で読む。どのノートが増えたか、何がバラバラかを把握する</span></div>
+    <div><span class="s">STEP 02</span><span class="n">やる</span><span class="d">タグを付ける、要約を書く、ノート同士をつなぐ、新しいファイルを作る</span></div>
+    <div><span class="s">STEP 03</span><span class="n">直す</span><span class="d">結果を自分で見返して、ズレていたらやり直す。ここまで人間は見ていない</span></div>
+  </div>
+  <p class="sub">人間がやっていたのは、ずっと <strong>STEP 01 の「見る」</strong> でした。探して、開いて、確認する。<em>あの時間が丸ごと消えます。</em></p>
+</section>
+
+<!-- 17 -->
+<section class="slide">
+  <div class="eyebrow">だから、こうなる</div>
+  <h2>アプリも<br><em>すぐ作れます</em></h2>
+  <div class="tools">
+    <div><span class="tagline">BROWSER</span><span class="n">Google AI Studio</span><span class="d">インストール不要。ブラウザで開いて喋るだけ。まず触ってみるならここが一番早い</span></div>
+    <div><span class="tagline">TERMINAL</span><span class="n">Claude Code</span><span class="d">フォルダごと渡すと、中を読んでファイルを作り、直してくれる。Obsidianを育てるのもこれ</span></div>
+    <div><span class="tagline">EDITOR</span><span class="n">VSCode ＋ Claude</span><span class="d">普段のエディタのまま。書きながら横で直してもらえる。既にVSCode派ならこれでOK</span></div>
+  </div>
+  <p class="sub">今日の3つの要件定義も、この延長線上です。<strong>喋って、投げて、返ってきたものを直すだけ</strong>。<em>コードを書ける必要はありません。</em></p>
+</section>
+
+<!-- 18 -->
+<section class="slide">
+  <div class="eyebrow">装備</div>
+  <h2>道具は4つで足ります</h2>
+  <div class="kit">
+    <div><span class="k">01</span><span class="n">録音</span><span class="d">tldv・スマホ・PC。喋ったものが全部素材になる</span></div>
+    <div><span class="k">02</span><span class="n">資料フォルダ</span><span class="d">既にある提案書・カタログ・PPT。フォルダごと投げる</span></div>
+    <div><span class="k">03</span><span class="n">Obsidian</span><span class="d">溜まる箱。ただのテキストなので壊れない、消えない</span></div>
+    <div><span class="k">04</span><span class="n">Claude Code</span><span class="d">勝手に読んで、勝手に組み直す側。ここが昔なかった</span></div>
+  </div>
+  <p class="sub">新しく買うものは、ほぼありません。<em>4つ目が増えただけ</em>で、前の3つは昔から手元にあったものです。</p>
+</section>
+
+<!-- 19 -->
+<section class="slide">
+  <div class="eyebrow">現実的な話</div>
+  <h2>全自動じゃなくていい。<br><em>一日10分の手動</em>で<br>十分あふれます</h2>
+  <p class="lead">完璧な自動連携を作ろうとすると、その構築で力尽きます。手で入れる10分を先に始めた人が勝つ。<strong>溜まってさえいれば、AIは読みに来ます。</strong></p>
+</section>
+
+<!-- 20 -->
+<section class="slide ep-div">
+  <div class="charslot"><img src="char-05.png" alt="" onload="this.style.display='block'" onerror="this.remove()"></div>
+  <div class="ep-no">CHAPTER V</div>
+  <h1>三人の使者</h1>
+  <p class="tag">株、競馬、配管設備。業種は全く違うのに、起きたことは同じでした。プロンプトと、返ってきた要件定義をそのまま出します。</p>
+  <div class="blade"></div>
+</section>
+
+<!-- 21 -->
+<section class="slide">
+  <div class="eyebrow">DATA FILE 01 ／ ryo ── デイトレード</div>
+  <div class="dos">
+    <div class="side">
+      <div class="lbl">出したプロンプト</div>
+      <div class="q">デイトレーダーが居ました。
+デイトレードは、１５：３０を終えてから出てくる情報や、その他の情報をいかに早く集めるかがキモ
+３社のトレードアプリを見つつ、終了後は情報を集める。四季報等で企業の引けあとの情報を集める。集めてそれを調べ、トレードする。場の間も情報を見ながら買うが、Aで情報を見てBアプリで発注するときに、8874の銘柄を8884としてしまう場合もある。時間の問題。
+（中略）
+これまでのトレードの自分自身の履歴をUPしたら、同じような嗜好のパターンから、類似の銘柄、タイミング、日足で見ているか分足で見ているかによってサジェストしまくるアプリを構築したい。要件定義して</div>
+    </div>
+    <div class="side hit">
+      <div class="lbl">あふれ出したもの</div>
+      <p class="txt">情報収集の相談だったのに、MVPは<b>誤発注ガード</b>になった。8874を8884と打ち間違える、あれを社名の巨大表示で殺す。技術的には一番簡単で、一番痛い。<br><br>探していたのは情報収集。<b>出てきたのは事故防止だった。</b></p>
+      <a class="link" href="case-ryo.html" target="_blank" rel="noopener">要件定義の全文 ▶</a>
+    </div>
+  </div>
+</section>
+
+<!-- 22 -->
+<section class="slide">
+  <div class="eyebrow">DATA FILE 02 ／ ゴードン ── 競馬予想</div>
+  <div class="dos">
+    <div class="side">
+      <div class="lbl">出したプロンプト</div>
+      <div class="q">競馬予想アプリを作りたい。
+世の中にリリースされている情報を集め、前、前の前の走り、今回の練習での走り、パドックでの歩様などから予想をするアプリを作りたい。できますか？</div>
+    </div>
+    <div class="side hit">
+      <div class="lbl">あふれ出したもの</div>
+      <p class="txt">歩様の自動判定は研究フェーズで今すぐ無理。代わりに返ってきたのは<b>「まず5段階で手入力して溜めろ」</b>。その手入力ログが、将来の学習データそのものになる。<br><br>欲しかったのはAI判定。<b>出てきたのは着手する順番だった。</b></p>
+      <a class="link" href="case-gordon.html" target="_blank" rel="noopener">要件定義の全文 ▶</a>
+    </div>
+  </div>
+</section>
+
+<!-- 23 -->
+<section class="slide">
+  <div class="eyebrow">DATA FILE 03 ／ yuta ── 配管設備の営業</div>
+  <div class="dos">
+    <div class="side">
+      <div class="lbl">出したプロンプト</div>
+      <div class="q">配管設備の営業を行っている人が居ます。
+その人が持っているナレッジやノウハウ、営業の殺し文句など、隠れたナレッジをオープンにするアプリを作りたい
+ただし、そういったものに抵抗があるので、ライトに。ライトにしたい。
+
+録音ボタンを作り、さらに、質問をします。
+また、最初にカタログ等取扱商品のものを登録します
+（中略）
+obsidianを育てるというやり方もあるし、どんどんＡＩで構造データを作るやり方もあると思う。それを考えて</div>
+    </div>
+    <div class="side hit">
+      <div class="lbl">あふれ出したもの</div>
+      <p class="txt">先にカタログを登録すると、質問が抽象論から具体に変わって喋れるようになる。そして溜まった答えが、そのまま<b>新人研修の教材</b>と<b>顧客向けチャットボット</b>に化けた。<br><br>ナレッジ整理のはずが、<b>教育と接客が同時に手に入った。</b></p>
+      <a class="link" href="case-yuta.html" target="_blank" rel="noopener">要件定義の全文 ▶</a>
+    </div>
+  </div>
+</section>
+
+<!-- 24 -->
+<section class="slide">
+  <div class="eyebrow">3つの共通点</div>
+  <h1>誰も、最初から<br>その答えを<br><em>探していなかった</em></h1>
+  <p class="sub">集めて、AIの前に並べた。それだけで、探していなかった答えが浮上した。<strong>これは偶然ではなく、構造です。</strong></p>
+</section>
+
+<!-- 25 -->
+<section class="slide ep-div">
+  <div class="charslot"><img src="char-06.png" alt="" onload="this.style.display='block'" onerror="this.remove()"></div>
+  <div class="ep-no">CHAPTER VI</div>
+  <h1>フォースの正体</h1>
+  <p class="tag">なぜ、探していない答えが出てくるのか。読書の世界に、同じ現象の名前があります。</p>
+  <div class="blade"></div>
+</section>
+
+<!-- 26 -->
+<section class="slide">
+  <div class="eyebrow">SYNTOPIC READING</div>
+  <h2>シントピックリーディング</h2>
+  <ul class="plain">
+    <li>1冊ずつ精読しない。<strong>複数の本を同時に浴びる</strong></li>
+    <li>探しに行っていないのに、<em>必要な情報が向こうから浮上する</em></li>
+    <li>理由は単純で、<strong>材料が同時に存在しているから</strong></li>
+  </ul>
+  <p class="sub">1冊ずつ順番に読むと、材料が同時に並ばない。だから浮上しない。<br><strong>AIも、構造は完全に同じです。</strong>雑に集めて同時に置くから、あふれ出す。</p>
+</section>
+
+<!-- 27 -->
+<section class="slide">
+  <div class="eyebrow">2ヶ月後に起きること</div>
+  <h2>説明しなくて<br>よくなります</h2>
+  <ul class="plain">
+    <li>自己紹介を毎回書かなくていい</li>
+    <li>仕事の進め方、判断のクセを毎回説明しなくていい</li>
+    <li>契約しているサーバー、使っている道具、過去の経緯も全部そこにある</li>
+  </ul>
+  <p class="sub">溜まったものが<em>自分の分身</em>になります。そして毎朝、今日書くべきこと・やるべきことが並んでいる状態になる。<strong>判断しなくていい。貼るだけ</strong>です。</p>
+</section>
+
+<!-- 28 -->
+<section class="slide">
+  <div class="eyebrow">最初の一歩</div>
+  <h2>3つだけ、今日やる</h2>
+  <ul class="plain">
+    <li><strong>蛇口を1本だけ開ける</strong> ── tldvか、クリップか、資料フォルダか。どれか1つ</li>
+    <li><strong>箱を1個だけ作る</strong> ── Obsidianを入れて、フォルダを1つ</li>
+    <li><strong>一日10分</strong> ── 完璧な自動化は後。雑に投げる10分から</li>
+  </ul>
+  <p class="sub"><em>あふれ出すのは、溜まってから</em>です。だから今日は、溜め始めるだけでいい。</p>
+</section>
+
+<!-- 29 -->
+<section class="slide" style="align-items:center;text-align:center;justify-content:center">
+  <div class="wordmark" style="font-size:clamp(2rem,7vw,5rem)">先に溜める。</div>
+  <div class="jptitle" style="margin-top:3vh">あとは、あふれます</div>
+  <p class="sub" style="margin-top:5vh;color:#4E6070">録音 ／ 資料フォルダ ／ Obsidian ／ Claude Code</p>
+</section>
+
+<audio id="bgm" src="bgm.mp3" loop preload="auto"></audio>
+<div id="hud"><span class="ep" id="epLbl"></span><span id="count"></span></div>
+
+<script>
+/* ---- audio ---- */
+let AC=null,master=null,drone=null,soundOn=true;
+function initAudio(){
+  if(AC)return;
+  try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(err){return}
+  master=AC.createGain();master.gain.value=.55;master.connect(AC.destination);
+}
+function noiseBuf(sec){
+  const n=Math.floor(AC.sampleRate*sec),b=AC.createBuffer(1,n,AC.sampleRate),d=b.getChannelData(0);
+  for(let k=0;k<n;k++)d[k]=(Math.random()*2-1)*(1-k/n);
+  return b;
+}
+function whoosh(){
+  if(!AC||!soundOn)return;
+  const s=AC.createBufferSource();s.buffer=noiseBuf(.5);
+  const f=AC.createBiquadFilter();f.type='bandpass';f.Q.value=1.1;
+  f.frequency.setValueAtTime(320,AC.currentTime);
+  f.frequency.exponentialRampToValueAtTime(2600,AC.currentTime+.34);
+  const g=AC.createGain();g.gain.setValueAtTime(.0001,AC.currentTime);
+  g.gain.exponentialRampToValueAtTime(.16,AC.currentTime+.05);
+  g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+.5);
+  s.connect(f);f.connect(g);g.connect(master);s.start();s.stop(AC.currentTime+.55);
+}
+function riser(){
+  if(!AC||!soundOn)return;
+  const t=AC.currentTime;
+  const o=AC.createOscillator();o.type='sawtooth';
+  o.frequency.setValueAtTime(38,t);o.frequency.exponentialRampToValueAtTime(180,t+3.2);
+  const f=AC.createBiquadFilter();f.type='lowpass';
+  f.frequency.setValueAtTime(180,t);f.frequency.exponentialRampToValueAtTime(2200,t+3.2);
+  const g=AC.createGain();g.gain.setValueAtTime(.0001,t);
+  g.gain.exponentialRampToValueAtTime(.26,t+2.6);
+  g.gain.exponentialRampToValueAtTime(.0001,t+4.2);
+  o.connect(f);f.connect(g);g.connect(master);o.start(t);o.stop(t+4.3);
+  const s=AC.createBufferSource();s.buffer=noiseBuf(1.4);
+  const nf=AC.createBiquadFilter();nf.type='highpass';nf.frequency.value=900;
+  const ng=AC.createGain();ng.gain.setValueAtTime(.22,t);ng.gain.exponentialRampToValueAtTime(.0001,t+1.4);
+  s.connect(nf);nf.connect(ng);ng.connect(master);s.start(t);
+}
+function startDrone(){
+  if(!AC||drone||!soundOn)return;
+  drone={};
+  const g=AC.createGain();g.gain.value=0;g.connect(master);
+  [41.2,61.7,82.4].forEach((hz,idx)=>{
+    const o=AC.createOscillator();o.type=idx===2?'triangle':'sine';o.frequency.value=hz;
+    const og=AC.createGain();og.gain.value=idx===0?.5:.22;
+    o.connect(og);og.connect(g);o.start();
+  });
+  g.gain.linearRampToValueAtTime(.10,AC.currentTime+3);
+  drone.g=g;
+}
+const bgm=document.getElementById('bgm');
+let bgmOK=false;
+bgm.addEventListener('canplay',()=>{bgmOK=true});
+bgm.addEventListener('error',()=>{bgmOK=false});
+function audioGesture(){
+  initAudio();
+  if(AC&&AC.state==='suspended')AC.resume();
+  startDrone();
+  if(bgmOK&&soundOn&&bgm.paused){bgm.volume=.35;bgm.play().catch(()=>{})}
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='m'||e.key==='M'){
+    soundOn=!soundOn;
+    if(master)master.gain.value=soundOn?.55:0;
+    if(bgmOK){soundOn?bgm.play().catch(()=>{}):bgm.pause()}
+  }
+});
+
+const warp=document.getElementById('warp');
+const bg=document.getElementById('bg');
+const bgPool=[];let lastBg='';
+for(let k=1;k<=12;k++){
+  const src=k+'.png';const im=new Image();
+  im.onload=()=>{bgPool.push(src);if(bgPool.length===1)setBg()};
+  im.src=src;
+}
+function setBg(){
+  if(!bgPool.length)return;
+  let pick=bgPool[Math.floor(Math.random()*bgPool.length)];
+  if(bgPool.length>1){let g=0;while(pick===lastBg&&g++<8)pick=bgPool[Math.floor(Math.random()*bgPool.length)]}
+  lastBg=pick;
+  bg.style.backgroundImage="url('"+pick+"')";
+  bg.classList.add('on');
+}
+for(let k=0;k<26;k++){const s=document.createElement('i');s.style.transform='rotate('+(k*13.8)+'deg)';warp.appendChild(s)}
+const slides=[...document.querySelectorAll('.slide')];
+const count=document.getElementById('count');
+const epLbl=document.getElementById('epLbl');
+let i=0;
+function show(n,jump){
+  const t=Math.max(0,Math.min(slides.length-1,n));
+  if(t===i&&jump!=='init')return;
+  i=t;
+  slides.forEach((s,k)=>s.classList.toggle('on',k===i));
+  count.textContent=String(i+1).padStart(2,'0')+' / '+slides.length;
+  epLbl.textContent=i<4?'':'マンスリーAIオビワン';
+  count.title='F:全画面  M:音のON/OFF  [ ]:背景の濃さ';
+  if(jump!=='init'){warp.classList.remove('go');void warp.offsetWidth;warp.classList.add('go');setBg();audioGesture();whoosh();if(i===1)riser()}
+}
+let bgOp=.85;
+document.addEventListener('keydown',e=>{
+  if(e.key==='['||e.key===']'){
+    bgOp=Math.max(0,Math.min(.5,bgOp+(e.key===']'?.03:-.03)));
+    document.getElementById('bg').style.opacity=bgOp;
+  }
+});
+document.addEventListener('keydown',e=>{
+  if(['ArrowRight','ArrowDown',' ','PageDown','Enter'].includes(e.key)){e.preventDefault();show(i+1)}
+  if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();show(i-1)}
+  if(e.key==='Home')show(0);
+  if(e.key==='End')show(slides.length-1);
+  if(e.key==='f'||e.key==='F'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}
+});
+document.addEventListener('click',e=>{
+  if(e.target.closest('a')||e.target.closest('.q'))return;
+  show(e.clientX<window.innerWidth*0.25?i-1:i+1);
+});
+let sx=null;
+document.addEventListener('touchstart',e=>sx=e.touches[0].clientX,{passive:true});
+document.addEventListener('touchend',e=>{if(sx===null)return;const d=e.changedTouches[0].clientX-sx;if(Math.abs(d)>50)show(d<0?i+1:i-1);sx=null},{passive:true});
+show(0,'init');
+</script>
+</body>
+</html>

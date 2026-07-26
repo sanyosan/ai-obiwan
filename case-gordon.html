@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DATA FILE 02 — ゴードン ／ 競馬予想アプリ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--void:#05070D;--panel:#0B1420;--gold:#FFE81F;--blue:#4BD5EE;--red:#E23B3B;--steel:#8FA3B8;--line:#1E2B3C;--text:#D3DEE8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--void);color:var(--text);font-family:'Noto Sans JP',sans-serif;font-weight:300;line-height:1.95;padding:6vh 6vw 14vh}
+.wrap{max-width:900px;margin:0 auto}
+.mono{font-family:'JetBrains Mono',monospace}
+.crest{font-family:'JetBrains Mono',monospace;font-size:.74rem;letter-spacing:.3em;color:var(--blue);margin-bottom:2.4rem}
+h1{font-weight:500;font-size:clamp(1.9rem,4.4vw,2.9rem);line-height:1.32;letter-spacing:.02em;color:#fff;margin-bottom:.8rem}
+.sub{color:var(--steel);font-size:1rem;margin-bottom:3.4rem}
+h2{font-weight:500;font-size:clamp(1.2rem,2.4vw,1.55rem);color:var(--gold);margin:3.6rem 0 1.2rem;padding-bottom:.5rem;border-bottom:1px solid var(--line)}
+h3{font-weight:500;font-size:1.06rem;color:#fff;margin:2rem 0 .6rem}
+p{margin-bottom:1.1rem}
+ul{margin:.4rem 0 1.4rem 1.3rem}
+li{margin-bottom:.6rem}
+strong{font-weight:500;color:#fff}
+em{font-style:normal;color:var(--blue)}
+.prompt{background:var(--panel);border-left:3px solid var(--blue);padding:1.6rem 1.8rem;margin:1rem 0 2rem;white-space:pre-wrap;font-size:.94rem;color:#B9C8D6;line-height:1.9}
+.mvp{border:1px solid var(--gold);border-radius:3px;padding:1.6rem 1.8rem;margin:2rem 0;background:rgba(255,232,31,.04)}
+.mvp .t{font-family:'JetBrains Mono',monospace;font-size:.7rem;letter-spacing:.16em;color:var(--gold);margin-bottom:.7rem}
+.warn{border-left:3px solid var(--red);background:rgba(226,59,59,.05);padding:1.3rem 1.6rem;margin:1.6rem 0;font-size:.95rem}
+table{width:100%;border-collapse:collapse;margin:1.4rem 0;font-size:.95rem}
+th,td{text-align:left;padding:.85rem 1rem;border-bottom:1px solid var(--line)}
+th{font-weight:500;color:var(--steel);font-family:'JetBrains Mono',monospace;font-size:.72rem;letter-spacing:.1em}
+.back{display:inline-block;margin-top:4rem;font-family:'JetBrains Mono',monospace;font-size:.8rem;letter-spacing:.12em;color:var(--blue);text-decoration:none;border:1px solid var(--line);padding:.7em 1.3em;border-radius:2px}
+.back:hover{border-color:var(--blue)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="crest">DATA FILE 02 ／ SUBJECT: ゴードン</div>
+<h1>競馬予想アプリ</h1>
+<p class="sub">前走・調教・パドックの歩様から予想する</p>
+
+<h2>のりさんが出したプロンプト</h2>
+<div class="prompt">競馬予想アプリを作りたい。
+世の中にリリースされている情報を集め、前、前の前の走り、今回の練習での走り、パドックでの歩様などから予想をするアプリを作りたい。できますか？</div>
+
+<h2>返ってきた答え</h2>
+<div class="mvp">
+<div class="t">MVP ── ここから作る</div>
+<p style="margin:0"><strong>前走・前々走の評価から。</strong>機能ごとに難易度が桁違いで、<em>パドックの歩様が一番重い</em>。そこを最初に置くと絶対に完成しない。構造化データだけで殺せる部分から着手する。</p>
+</div>
+
+<h2>F1 ｜ 集める（データ基盤）</h2>
+<p>全ての土台で、ここの選択がプロジェクトの寿命を決める。</p>
+<ul>
+<li><strong>推奨：JRA-VAN Data Lab</strong>（有料・公式）。過去走、血統、調教、騎手、コース、馬体重まで構造化データで取れる。個人開発向けライセンスがあり、規約の中で使える</li>
+<li><strong>非推奨：netkeiba等のスクレイピング</strong>。データは豊富だが規約でほぼ禁止。アプリとして配るなら公式データに乗り換えるべき</li>
+<li><strong>マスタ設計</strong>：レースID／馬ID／騎手ID／調教師ID／コース条件（距離・馬場・天候）</li>
+</ul>
+
+<h2>F2 ｜ 前走・前々走の評価 ★MVP</h2>
+<ul>
+<li>着順ではなく<strong>着差・上がり3F・通過順</strong>で評価する（着順は展開に汚染されている）</li>
+<li><strong>条件の一致度</strong>：今回と前走の距離・馬場状態・コース形態の近さ</li>
+<li>休養明けか、連戦か（レース間隔）</li>
+<li>斤量・馬体重の増減</li>
+<li>出力：出走各馬の「前走評価スコア」と、その根拠の内訳</li>
+</ul>
+
+<h2>F3 ｜ 調教評価</h2>
+<ul>
+<li>最終追い切りのタイム、コース（坂路／ウッド）、併走相手との比較</li>
+<li>前走時の調教との<strong>差分</strong>（今回の方が動けているか）</li>
+<li>JRA-VANに数値で入っているので比較的素直に組める</li>
+</ul>
+
+<h2>F4 ｜ パドック歩様 ← 最重量</h2>
+<p>動画から歩様を自動評価するのは、<strong>このプロジェクトで唯一の研究開発</strong>。姿勢推定モデルを馬でやることになり、学習データも自分で作る必要がある。ここに手を出すとv1が永遠に来ない。</p>
+<div class="mvp">
+<div class="t">MVPでの設計</div>
+<p style="margin:0">スマホで自分がパドックを見て、歩様・気配・発汗を<strong>5段階で手入力</strong>する。10秒で終わる。そのスコアがF5の予想に効く。<br><br>自動化は、その手入力ログが数百件たまってから初めて意味を持つ。つまり<em>手入力が学習データ収集そのものになる</em>。まず集める、育つのは後。</p>
+</div>
+
+<h2>F5 ｜ 予想出力とチューニング</h2>
+<ul>
+<li>各要素（前走・調教・パドック・騎手・コース適性）に重みをかけて総合スコア化</li>
+<li><strong>自分の的中履歴で重みを調整</strong>する。ryoのF3と全く同じ構造で、「自分の目のクセ」を学習する仕組みになる</li>
+<li>出力は勝ち馬の断定ではなく<strong>スコア順と根拠の内訳</strong>。どの要素で高評価なのかが見えないと、外れたときに改善できない</li>
+</ul>
+
+<h2>フェーズ</h2>
+<table>
+<tr><th>PHASE</th><th>内容</th><th>形</th></tr>
+<tr><td class="mono">v1</td><td>F1データ取得＋F2前走評価</td><td>単一HTML＋CSV</td></tr>
+<tr><td class="mono">v2</td><td>F3調教評価、F4パドック手入力</td><td>スマホ入力対応</td></tr>
+<tr><td class="mono">v3</td><td>F5重み学習（自分の的中履歴でチューニング）</td><td>分析機能追加</td></tr>
+<tr><td class="mono">v4</td><td>歩様の自動評価</td><td>研究フェーズ</td></tr>
+</table>
+
+<h2>正直に言っておく2点</h2>
+<div class="warn"><strong>控除率。</strong>JRAの控除率は概ね20〜30%。全員の平均は最初から大幅マイナスで、予想精度を上げても「他の参加者より相対的に上手い」を維持し続けないとプラスにならない。株のデイトレとは条件が違う。</div>
+<div class="warn"><strong>売るなら別の話になる。</strong>自分用の分析ツールなら自由だが、他人に対価を取って予想を提供すると特定商取引法や景品表示法の領域に入り、「的中率○%」の表示にも根拠資料が必要になる。商品化の段階では専門家に確認すること。</div>
+<p><strong>個人用の分析ツールとして作り、その開発過程をnoteとGitHubで公開する。</strong>この形なら規制の話は消えて、しかも今日の構想の題材として最高に映る。</p>
+
+<h2>あふれ出したもの</h2>
+<p><strong>探していたのはAI判定。あふれ出したのは、着手する順番だった。</strong></p>
+
+<a class="back" href="sw-seminar-deck.html">◀ RETURN TO BRIEFING</a>
+</div>
+</body>
+</html>

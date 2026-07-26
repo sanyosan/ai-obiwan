@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 640" width="1200" height="640" font-family="'Noto Sans JP','Hiragino Sans','Yu Gothic',sans-serif">
+<defs>
+<marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M1 1L9 5L1 9" fill="none" stroke="context-stroke" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+<rect width="1200" height="640" fill="#04060B"/>
+
+<text x="60" y="56" fill="#8FA3B8" font-size="20" letter-spacing="6">変わったのは主語</text>
+<line x1="60" y1="74" x2="1140" y2="74" stroke="#1B2736"/>
+<line x1="600" y1="108" x2="600" y2="528" stroke="#1B2736" stroke-dasharray="4 6"/>
+
+<text x="320" y="138" text-anchor="middle" fill="#E23B3B" font-size="24">昔 ｜ Evernote・OneNote</text>
+<text x="880" y="138" text-anchor="middle" fill="#6BE85A" font-size="24">今 ｜ Obsidian ＋ Claude</text>
+
+<g font-size="24">
+<rect x="150" y="170" width="340" height="72" rx="4" fill="#0B1420" stroke="#3A4B60"/>
+<text x="320" y="206" text-anchor="middle" fill="#D8E2EC">溜める</text>
+<text x="320" y="230" text-anchor="middle" fill="#6B7D8F" font-size="17">分類しながら入れる</text>
+
+<rect x="710" y="170" width="340" height="72" rx="4" fill="#0A1A12" stroke="#2E6B3E"/>
+<text x="880" y="206" text-anchor="middle" fill="#D8E6DC">雑に放り込む</text>
+<text x="880" y="230" text-anchor="middle" fill="#4E8A6E" font-size="17">フォルダごとでOK</text>
+
+<rect x="150" y="296" width="340" height="72" rx="4" fill="#0B1420" stroke="#3A4B60"/>
+<text x="320" y="332" text-anchor="middle" fill="#D8E2EC">検索する</text>
+<text x="320" y="356" text-anchor="middle" fill="#6B7D8F" font-size="17">どこにある？を自分で探す</text>
+
+<rect x="710" y="296" width="340" height="72" rx="4" fill="#0A1A12" stroke="#2E6B3E"/>
+<text x="880" y="332" text-anchor="middle" fill="#D8E6DC">勝手に再構築される</text>
+<text x="880" y="356" text-anchor="middle" fill="#4E8A6E" font-size="17">タグ・つながり・要約</text>
+
+<rect x="150" y="422" width="340" height="72" rx="4" fill="#1E0C0C" stroke="#8A2E2E"/>
+<text x="320" y="458" text-anchor="middle" fill="#F09090">リビルド地獄</text>
+<text x="320" y="482" text-anchor="middle" fill="#8A5555" font-size="17">検索止まりで時間が溶ける</text>
+
+<rect x="710" y="422" width="340" height="72" rx="4" fill="#0A1A12" stroke="#6BE85A"/>
+<text x="880" y="458" text-anchor="middle" fill="#6BE85A">発信になる</text>
+<text x="880" y="482" text-anchor="middle" fill="#4E8A6E" font-size="17">note・SNSへ流れ出す</text>
+</g>
+
+<line x1="320" y1="242" x2="320" y2="292" stroke="#6B7D8F" stroke-width="1.8" marker-end="url(#a)"/>
+<text x="336" y="274" fill="#8FA3B8" font-size="16">人間が探しに行く</text>
+<line x1="320" y1="368" x2="320" y2="418" stroke="#6B7D8F" stroke-width="1.8" marker-end="url(#a)"/>
+<text x="336" y="400" fill="#8FA3B8" font-size="16">整理し直す</text>
+
+<line x1="880" y1="242" x2="880" y2="292" stroke="#6BE85A" stroke-width="1.8" marker-end="url(#a)"/>
+<text x="896" y="274" fill="#6BE85A" font-size="16">AIが勝手に読む</text>
+<line x1="880" y1="368" x2="880" y2="418" stroke="#6BE85A" stroke-width="1.8" marker-end="url(#a)"/>
+<text x="896" y="400" fill="#6BE85A" font-size="16">そのまま</text>
+
+<text x="320" y="568" text-anchor="middle" fill="#E23B3B" font-size="26">主語は「人間」＝探す</text>
+<text x="880" y="568" text-anchor="middle" fill="#FFE81F" font-size="26">主語は「AI」＝働く</text>
+<text x="600" y="612" text-anchor="middle" fill="#6B7D8F" font-size="18">同じ「全部集める」思想。違うのは、誰が読むか。</text>
+</svg>

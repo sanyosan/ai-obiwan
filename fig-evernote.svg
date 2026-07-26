@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 640" width="1200" height="640" font-family="'Noto Sans JP','Hiragino Sans','Yu Gothic',sans-serif">
+<defs>
+<marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+<path d="M1 1L9 5L1 9" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+</marker>
+</defs>
+<rect width="1200" height="640" fill="#05070D"/>
+
+<text x="60" y="58" fill="#8FA3B8" font-size="20" letter-spacing="6">THE OLD REPUBLIC — Evernote / OneNote</text>
+<line x1="60" y1="76" x2="1140" y2="76" stroke="#1E2B3C" stroke-width="1"/>
+
+<g fill="#C6D3DF" font-size="22">
+<rect x="1000" y="112" width="150" height="58" rx="4" fill="#0C141F" stroke="#3A4B60"/>
+<text x="1075" y="147" text-anchor="middle">テキスト</text>
+<rect x="1000" y="192" width="150" height="58" rx="4" fill="#0C141F" stroke="#3A4B60"/>
+<text x="1075" y="227" text-anchor="middle">写真</text>
+<rect x="1000" y="272" width="150" height="58" rx="4" fill="#0C141F" stroke="#3A4B60"/>
+<text x="1075" y="307" text-anchor="middle">音声</text>
+<rect x="1000" y="352" width="150" height="58" rx="4" fill="#0C141F" stroke="#3A4B60"/>
+<text x="1075" y="387" text-anchor="middle">Webページ</text>
+<rect x="1000" y="432" width="150" height="58" rx="4" fill="#0C141F" stroke="#3A4B60"/>
+<text x="1075" y="467" text-anchor="middle">手書きメモ</text>
+</g>
+<text x="1075" y="524" text-anchor="middle" fill="#5B6E83" font-size="30">⋮</text>
+
+<line x1="998" y1="141" x2="820" y2="200" stroke="#5B6E83" stroke-width="1.6" marker-end="url(#a)"/>
+<line x1="998" y1="221" x2="820" y2="215" stroke="#5B6E83" stroke-width="1.6" marker-end="url(#a)"/>
+<line x1="998" y1="301" x2="820" y2="230" stroke="#5B6E83" stroke-width="1.6" marker-end="url(#a)"/>
+<line x1="998" y1="381" x2="800" y2="372" stroke="#5B6E83" stroke-width="1.6" marker-end="url(#a)"/>
+<line x1="998" y1="461" x2="800" y2="392" stroke="#5B6E83" stroke-width="1.6" marker-end="url(#a)"/>
+
+<rect x="640" y="176" width="180" height="70" rx="4" fill="#12271F" stroke="#2E7D5B"/>
+<text x="730" y="204" text-anchor="middle" fill="#7FD8AE" font-size="19">Evernote</text>
+<text x="730" y="228" text-anchor="middle" fill="#7FD8AE" font-size="19">アプリケーション</text>
+
+<rect x="620" y="338" width="180" height="70" rx="4" fill="#2A230D" stroke="#8A742A"/>
+<text x="710" y="366" text-anchor="middle" fill="#E0C566" font-size="19">Evernote連携</text>
+<text x="710" y="390" text-anchor="middle" fill="#E0C566" font-size="19">アプリケーション</text>
+
+<g fill="#0C141F" stroke="#3A4B60">
+<rect x="430" y="150" width="96" height="120" rx="3"/>
+<rect x="430" y="290" width="96" height="120" rx="3"/>
+<rect x="430" y="430" width="96" height="120" rx="3"/>
+</g>
+<g fill="#5B6E83">
+<rect x="446" y="170" width="64" height="6" rx="3"/><rect x="446" y="186" width="48" height="6" rx="3"/>
+<rect x="446" y="310" width="64" height="6" rx="3"/><rect x="446" y="326" width="48" height="6" rx="3"/>
+<rect x="446" y="450" width="64" height="6" rx="3"/><rect x="446" y="466" width="48" height="6" rx="3"/>
+</g>
+<text x="478" y="132" text-anchor="middle" fill="#8FA3B8" font-size="20">ノート</text>
+
+<line x1="638" y1="211" x2="530" y2="210" stroke="#5B6E83" stroke-width="1.6" marker-end="url(#a)"/>
+<line x1="618" y1="356" x2="530" y2="350" stroke="#5B6E83" stroke-width="1.6" marker-end="url(#a)"/>
+<line x1="618" y1="386" x2="530" y2="490" stroke="#5B6E83" stroke-width="1.6" marker-end="url(#a)"/>
+
+<ellipse cx="210" cy="350" rx="130" ry="92" fill="#0A1622" stroke="#2E4A66"/>
+<rect x="176" y="306" width="68" height="88" rx="30" fill="#123044" stroke="#3E7BA0"/>
+<text x="210" y="474" text-anchor="middle" fill="#8FA3B8" font-size="21">Evernoteのサーバ</text>
+
+<line x1="428" y1="210" x2="330" y2="300" stroke="#5B6E83" stroke-width="1.6" marker-end="url(#a)"/>
+<line x1="428" y1="350" x2="342" y2="350" stroke="#5B6E83" stroke-width="1.6" marker-end="url(#a)"/>
+<line x1="428" y1="490" x2="330" y2="400" stroke="#5B6E83" stroke-width="1.6" marker-end="url(#a)"/>
+
+<text x="60" y="596" fill="#E23B3B" font-size="22">溜める → 人間が探しに行く → 検索で止まる → リビルド地獄</text>
+<text x="60" y="624" fill="#5B6E83" font-size="18">主語は「人間」。呼び出すのは、いつも自分だった。</text>
+</svg>
