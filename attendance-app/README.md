@@ -61,26 +61,90 @@
 
 ## セットアップ
 
-### A. スプレッドシートと Apps Script
+### A. Apps Script にコードを入れる
 
-1. <https://script.google.com/> で「新しいプロジェクト」を作る。名前は「未来創造家 勤怠」など。
-2. 左の歯車（プロジェクトの設定）で **「appsscript.json マニフェスト ファイルをエディタで表示する」にチェック**。
-3. `attendance-app/gas/` の中身をエディタに写す。
-   - `appsscript.json` … 中身を貼り替える
-   - `00_Config.gs` 〜 `10_Shift.gs` … 「ファイル > +」でスクリプトを11個作り、それぞれ貼り付ける
-   （`clasp` を使うなら `clasp push` で一気に入る）
-4. 関数の一覧から **`setup`** を選んで実行。初回は権限の確認が出るので許可する。
-5. 実行ログに次が出るので**控える**。
-   - スプレッドシートのURL
-   - **アプリキー**（24桁）
-   - 各人の**初期PIN**
-6. **デプロイ > 新しいデプロイ > 種類「ウェブアプリ」**
-   - 説明: 任意
+やり方は2つ。**ブラウザだけで完結させたいなら A-1**、
+コマンドが使えるなら A-2 のほうが以後の更新が楽。
+
+#### A-1. Chrome だけで入れる（貼り付け1回・おすすめ）
+
+11ファイルを貼って回らなくていいように、
+**全部をつなげた1枚** `attendance-app/paste-to-gas.gs` を用意してある。
+
+1. <https://script.google.com/> を開いて「新しいプロジェクト」
+2. プロジェクト名を「未来創造家 勤怠」などにする
+3. 左に出ている `コード.gs` を開き、**中身を全部消す**
+4. `attendance-app/paste-to-gas.gs` の中身を**まるごと貼り付けて保存**（Ctrl/⌘+S）
+5. 左の歯車（プロジェクトの設定）で **タイムゾーンが「(GMT+09:00) 日本標準時」** になっているか確認。
+   違っていたら直す（日付の区切りがずれるため）
+6. 上の関数選択で **`setup`** を選び「実行」。初回は権限の確認が出るので許可する
+7. 実行ログに出る**スプレッドシートのURL・アプリキー・各人のPIN**を控える
+8. 右上「デプロイ」→「新しいデプロイ」→ 歯車で**ウェブアプリ**を選ぶ
    - 次のユーザーとして実行: **自分**
    - アクセスできるユーザー: **全員**
-   - デプロイして出てくる `https://script.google.com/macros/s/.../exec` を控える
+9. 出てきた `https://script.google.com/macros/s/.../exec` を控える
 
-> コードを直したら、**「デプロイを管理」→ 鉛筆 → バージョン「新バージョン」→ デプロイ**をしないと反映されない。URLは変わらない。
+> コードを直したときは、`paste-to-gas.gs` を貼り直したうえで
+> **「デプロイを管理」→ 鉛筆 → バージョン「新バージョン」→ デプロイ**。URLは変わらない。
+
+`paste-to-gas.gs` は `gas/` から自動生成している。中身を直すときは `gas/` を直して
+`node attendance-app/tools/bundle.js` で作り直す（テストがズレを検出する）。
+
+#### A-2. clasp を使う（コマンドが使えるなら・以後が楽）
+
+事前にひとつだけ。<https://script.google.com/home/usersettings> を開いて
+**「Google Apps Script API」をオンにする**。ここがオフだと `push` が必ず失敗する。
+
+```bash
+cd attendance-app
+
+# 初回だけ。ブラウザが開いてGoogleログインを求められる
+npx @google/clasp login
+
+# Apps Script プロジェクトを新規に作る（.clasp.json が自動でできる）
+npx @google/clasp create --type standalone --title "未来創造家 勤怠" --rootDir ./gas
+
+# コードを流し込む
+npx @google/clasp push -f
+```
+
+すでにブラウザ側でプロジェクトを作ってある場合は `create` の代わりに、
+`.clasp.json.sample` を `.clasp.json` にコピーして **スクリプトID** を書く
+（Apps Scriptの「プロジェクトの設定」に出ている英数字の長い文字列）。
+
+```bash
+cp .clasp.json.sample .clasp.json
+# エディタで scriptId を書き換えてから
+npx @google/clasp push -f
+```
+
+続けてウェブアプリとして公開する。実行ユーザーとアクセス範囲は
+`gas/appsscript.json` に書いてあるので、コマンドだけで所定の設定になる。
+
+```bash
+npx @google/clasp create-deployment -d "初回"
+npx @google/clasp list-deployments      # 出てきたIDが exec URL の一部になる
+```
+
+`https://script.google.com/macros/s/＜デプロイID＞/exec` が接続先URL。
+
+**コードを直したあと**は次の2つ。URLは変わらない。
+
+```bash
+npx @google/clasp push -f
+npx @google/clasp update-deployment ＜デプロイID＞
+```
+
+#### A-3. clasp の場合の初期化
+
+`push` のあと、エディタで関数 **`setup`** を実行する。
+初回の権限確認はブラウザでしか通せないので、ここだけは画面を開く。
+
+```bash
+npx @google/clasp open-script
+```
+
+実行ログに出るスプレッドシートURL・アプリキー・各人のPINを控える。
 
 ### B. スプレッドシート側の下ごしらえ
 
@@ -237,7 +301,16 @@ PINを空にすれば4桁が自動で発行され、追加後にトースト表�
 node attendance-app/test/run.js
 ```
 
-打刻・遅刻早退の計算・シフト表・未打刻アラート・日次締め・統計・権限まわりなど143項目を通しで確認する。
+打刻・遅刻早退の計算・シフト表・未打刻アラート・日次締め・統計・権限まわりなど144項目を通しで確認する。
+貼り付け用の1枚版が最新かどうかもここで見ている。
+
+1枚版そのものを動かして確かめることもできる。
+
+```bash
+node attendance-app/tools/bundle.js
+mkdir -p /tmp/bundle && cp attendance-app/paste-to-gas.gs /tmp/bundle/
+GAS_DIR=/tmp/bundle node attendance-app/test/run.js
+```
 `attendance-app/test/harness.js` が Apps Script のサービスをメモリ上で模擬している。
 
 ---
@@ -248,7 +321,9 @@ node attendance-app/test/run.js
 |---|---|
 | 「アプリキーが違います」 | 設定画面の入力ミス。GASの「プロジェクトの設定 > スクリプト プロパティ」の `APP_KEY` と見比べる |
 | 「サーバーに接続できませんでした」 | デプロイの「アクセスできるユーザー」が**全員**になっているか確認 |
-| コードを直したのに変わらない | 「デプロイを管理」で**新バージョン**にしていない |
+| コードを直したのに変わらない | claspなら `update-deployment`、手貼りなら「デプロイを管理」で**新バージョン**にする |
+| `clasp push` が失敗する | <https://script.google.com/home/usersettings> で Apps Script API がオフ。オンにする |
+| `clasp login` が通らない | 会社アカウントで管理者が外部アプリを制限している場合がある。個人アカウントか、管理者に確認 |
 | 位置情報が取れない | ブラウザとOSの両方で位置情報を許可する。iPhoneは 設定 > プライバシー > 位置情報サービス > Safari |
 | 通知が来ない | 社員マスターのメールアドレスが空。設定シートの「メール通知」がOFF。GASの1日あたり送信上限（無料枠100通）も確認 |
 | シフト表を保存できない | 1回で保存できるのは400マスまで。月を分けて保存する |

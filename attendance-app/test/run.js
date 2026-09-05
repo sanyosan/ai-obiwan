@@ -367,6 +367,18 @@ check('一般社員のシフト表は自分だけ',
   call('shiftTable', { month: '2026-10', employeeId: 'all' },
     call('login', { employeeId: 'E003', pin: '4321' }).token).members.length === 1);
 
+console.log('\n=== 25. 貼り付け用の1枚版 ===');
+const { execFileSync } = require('child_process');
+const path = require('path');
+try {
+  execFileSync(process.execPath,
+    [path.join(__dirname, '..', 'tools', 'bundle.js'), '--check'], { stdio: 'pipe' });
+  check('paste-to-gas.gs が gas/ と一致している', true);
+} catch (e) {
+  check('paste-to-gas.gs が gas/ と一致している', false,
+    String((e.stderr || '').toString() || e.message).trim());
+}
+
 console.log('\n----------------------------------------');
 console.log(pass + ' 件成功 / ' + fail + ' 件失敗');
 console.log('----------------------------------------');

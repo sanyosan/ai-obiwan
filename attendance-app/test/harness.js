@@ -7,7 +7,8 @@ const fs = require('fs');
 const vm = require('vm');
 const path = require('path');
 
-const GAS_DIR = path.join(__dirname, '..', 'gas');
+// GAS_DIR を差し替えると、1枚版（paste-to-gas.gs）でも同じテストを流せる
+const GAS_DIR = process.env.GAS_DIR || path.join(__dirname, '..', 'gas');
 
 /* ---------- 時刻の固定 ---------- */
 let CURRENT = new Date('2026-09-04T23:58:00Z'); // JST 2026-09-05 08:58

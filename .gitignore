@@ -9,3 +9,7 @@
 
 # 勤怠アプリのPWAアイコンは公開物なのでコミットする
 !kintai/icons/*.png
+
+# clasp の接続先とログイン情報（個人・プロジェクト固有なので共有しない）
+attendance-app/.clasp.json
+.clasprc.json
