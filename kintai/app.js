@@ -47,7 +47,11 @@
       var timer = setTimeout(function () { cleanup(); reject(new Error('通信がタイムアウトしました。')); }, 20000);
       function cleanup() { clearTimeout(timer); delete window[cb]; if (s.parentNode) s.parentNode.removeChild(s); }
       window[cb] = function (data) { cleanup(); resolve(data); };
-      s.onerror = function () { cleanup(); reject(new Error('サーバーに接続できませんでした。')); };
+      s.onerror = function () {
+        cleanup();
+        reject(new Error('サーバーに接続できませんでした。URLが /exec で終わっているか、'
+          + 'デプロイの「アクセスできるユーザー」が全員になっているか確認してください。'));
+      };
       s.src = url;
       document.body.appendChild(s);
     });
@@ -201,6 +205,35 @@
   }
 
   /* ================= 起動 ================= */
+
+  /**
+   * 接続先URLの入力ミスを、具体的に言い当てる。
+   * 問題なければ空文字を返す。
+   */
+  function diagnoseApiUrl(url) {
+    if (!/^https?:\/\/\S+$/.test(url)) {
+      return 'URLは https://script.google.com/… /exec の形で入れてください。';
+    }
+    if (/docs\.google\.com/.test(url)) {
+      return 'それはスプレッドシートのURLです。Apps Script の「デプロイを管理」に出ている、'
+        + '/exec で終わるウェブアプリのURLを入れてください。';
+    }
+    if (/script\.google\.com/.test(url)) {
+      if (/\/dev$/.test(url)) {
+        return 'それはテスト用のURL（/dev）です。自分以外は開けません。'
+          + '「デプロイを管理」の /exec で終わるURLを入れてください。';
+      }
+      if (/\/edit(\?|$)|\/d\//.test(url)) {
+        return 'それはApps Scriptの編集画面のURLです。「デプロイを管理」に出ている、'
+          + '/exec で終わるウェブアプリのURLを入れてください。';
+      }
+      if (!/\/exec$/.test(url)) {
+        return 'URLの末尾が /exec になっていません。'
+          + '「デプロイを管理」のコピーボタンで取ったURLをそのまま貼ってください。';
+      }
+    }
+    return '';
+  }
 
   function show(id) {
     ['#scr-config', '#scr-login', '#app'].forEach(function (s) { $(s).hidden = (s !== id); });
@@ -1018,10 +1051,8 @@
     $('#cfg-save').onclick = function () {
       var url = $('#cfg-url').value.trim();
       var key = $('#cfg-key').value.trim();
-      if (!/^https?:\/\/\S+$/.test(url)) {
-        msg('#cfg-msg', 'URLは https://script.google.com/… /exec の形で入れてください。', 'err');
-        return;
-      }
+      var wrong = diagnoseApiUrl(url);
+      if (wrong) { msg('#cfg-msg', wrong, 'err'); return; }
       state.url = url; state.key = key;
       store.set('url', url); store.set('key', key);
       msg('#cfg-msg', '接続を確認しています…');
