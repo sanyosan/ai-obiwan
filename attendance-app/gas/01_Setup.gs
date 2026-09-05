@@ -13,6 +13,7 @@ function setup() {
   const ss = getSpreadsheet_();
   ensureSheets_(ss);
   seedConfig_(ss);
+  seedShifts_(ss);
   const pins = seedEmployees_(ss);
   const key = ensureAppKey_();
   installTriggers();
@@ -32,6 +33,7 @@ function setup() {
   lines.push('次にやること:');
   lines.push('  1. 社員マスターの氏名・メールアドレスを正しい内容に直す');
   lines.push('  2. 設定シートの事業所緯度・経度を入れる（GPS判定に使う）');
+  lines.push('  （シフト区分シートに早番・日勤・遅番などの初期値が入っています）');
   lines.push('  3. デプロイ > 新しいデプロイ > ウェブアプリ');
   lines.push('     次のユーザーとして実行: 自分');
   lines.push('     アクセスできるユーザー: 全員');
@@ -114,6 +116,13 @@ function seedConfig_(ss) {
   sh.setColumnWidth(1, 180);
   sh.setColumnWidth(2, 220);
   sh.setColumnWidth(3, 420);
+}
+
+/** シフト区分の初期値（既に1行でもあれば触らない） */
+function seedShifts_(ss) {
+  const sh = ss.getSheetByName(SHEET_SHIFT);
+  if (sh.getLastRow() > 1) return;
+  sh.getRange(2, 1, DEFAULT_SHIFTS.length, HEADERS[SHEET_SHIFT].length).setValues(DEFAULT_SHIFTS);
 }
 
 /**

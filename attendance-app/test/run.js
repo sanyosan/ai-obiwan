@@ -17,10 +17,12 @@ const setupMsg = G.setup();
 const APPKEY = H.propsStore.APP_KEY;
 G.propsKey = APPKEY;
 check('アプリキーが発行された', !!APPKEY && APPKEY.length === 24, APPKEY);
-check('シートが6枚できた', G.getSpreadsheet_().getSheets().length === 6,
+check('シートが7枚できた', G.getSpreadsheet_().getSheets().length === 7,
   G.getSpreadsheet_().getSheets().map(s => s.getName()));
 check('社員が5人', G.readAll_(G.C.SHEET_EMPLOYEE).length === 5);
 check('トリガー3本', H.triggers.length === 3);
+check('シフト区分が8つ入った', G.readAll_(G.C.SHEET_SHIFT).length === 8,
+  G.readAll_(G.C.SHEET_SHIFT).length);
 
 console.log('\n=== 2. アプリキー / ping ===');
 check('pingはキー無しでも通る', G.handle_({ action: 'ping' }).ok === true);
@@ -227,6 +229,143 @@ call('punch', { type: 'out', workMode: 'リモート', device: { id: 'dev-admin'
 check('Webhookが呼ばれた', H.sentHooks.length > hookBefore);
 check('Slack形式のtext', JSON.parse(H.sentHooks[H.sentHooks.length - 1].o.payload).text !== undefined);
 check('通知ログが残る', G.readAll_(G.C.SHEET_NOTIFY).length > 0, G.readAll_(G.C.SHEET_NOTIFY).length);
+
+console.log('\n=== 19. シフト区分 ===');
+// 15章でログアウトしているので入り直す（13章でPINは4321に変更済み）
+const MEMBER_TOKEN2 = call('login', { employeeId: 'E003', pin: '4321' }).token;
+check('一般で入り直せた', !!MEMBER_TOKEN2);
+const shifts = call('listShifts', {}, ADMIN_TOKEN);
+check('シフト区分が取れる', shifts.shifts.length === 8, shifts.shifts.length);
+const nikkin = shifts.shifts.filter(s => s.code === '日')[0];
+check('日勤は09:00-18:00', nikkin.start === '09:00' && nikkin.end === '18:00', nikkin);
+check('公休は時刻なし', shifts.shifts.filter(s => s.code === '休')[0].start === '');
+check('在宅はリモート', shifts.shifts.filter(s => s.code === '宅')[0].workMode === 'リモート');
+const addShift = call('saveShift', {
+  code: '夜', name: '夜勤', start: '22:00', end: '07:00', breakMin: 60,
+  workMode: '出社', kind: '通常', color: '#334155', order: 9
+}, ADMIN_TOKEN);
+check('シフト区分を追加できた', addShift.ok && addShift.created === true, addShift);
+check('一般はシフト区分を追加できない',
+  call('saveShift', { code: 'X', name: 'だめ', start: '09:00', end: '18:00' }, MEMBER_TOKEN2).ok === false);
+check('時刻なしの通常シフトは弾く',
+  call('saveShift', { code: 'Z', name: '不備', kind: '通常' }, ADMIN_TOKEN).ok === false);
+check('休暇区分なら時刻なしで登録できる',
+  call('saveShift', { code: '特', name: '特別休暇', kind: '特別休暇', order: 10 }, ADMIN_TOKEN).ok === true);
+check('シフト区分を消せる', call('deleteShift', { code: '特' }, ADMIN_TOKEN).ok === true);
+
+console.log('\n=== 20. 月間シフト表 ===');
+const table = call('shiftTable', { month: '2026-10', employeeId: 'all' }, ADMIN_TOKEN);
+check('シフト表が返る', table.ok === true, table.error);
+check('10月は31日分', table.days.length === 31, table.days.length);
+check('10/1は木曜', table.days[0].dow === 4, table.days[0]);
+check('在籍者が並ぶ', table.members.length === 5, table.members.length);
+check('最初は空', Object.keys(table.cells).length === 0);
+
+const assign = call('assignShifts', {
+  assignments: [
+    { employeeId: 'E003', date: '2026-10-01', shift: '早' },
+    { employeeId: 'E003', date: '2026-10-02', shift: '日' },
+    { employeeId: 'E003', date: '2026-10-03', shift: '休' },
+    { employeeId: 'E004', date: '2026-10-01', shift: '遅' },
+    { employeeId: 'E004', date: '2026-10-02', shift: '宅' }
+  ]
+}, ADMIN_TOKEN);
+check('5マス保存できた', assign.saved === 5, assign);
+
+const table2 = call('shiftTable', { month: '2026-10', employeeId: 'all' }, ADMIN_TOKEN);
+check('マスが埋まった', Object.keys(table2.cells).length === 5, Object.keys(table2.cells).length);
+check('早番の時刻が展開された',
+  table2.cells['E003|2026-10-01'].start === '07:00' && table2.cells['E003|2026-10-01'].end === '16:00',
+  table2.cells['E003|2026-10-01']);
+check('公休は時刻が空', table2.cells['E003|2026-10-03'].start === '');
+check('公休の区分が入る', table2.cells['E003|2026-10-03'].kind === '公休');
+check('在宅はリモート勤務になる', table2.cells['E004|2026-10-02'].workMode === 'リモート');
+check('10/1の出勤は2人', table2.coverage[0].count === 2, table2.coverage[0]);
+check('10/3の出勤は0人', table2.coverage[2].count === 0, table2.coverage[2]);
+const t3 = table2.totals.filter(t => t.employeeId === 'E003')[0];
+check('E003は勤務2日', t3.workDays === 2, t3.workDays);
+check('E003は休み1日', t3.offDays === 1, t3.offDays);
+// 早番 07:00-16:00 休憩60 = 480分, 日勤 09:00-18:00 休憩60 = 480分
+check('E003の予定実働は16時間', t3.workMin === 960, t3.workMin);
+
+console.log('\n=== 21. シフトから勤務予定への反映 ===');
+const planOct = call('listPlans', { month: '2026-10', employeeId: 'E003' }, ADMIN_TOKEN);
+check('勤務予定に3日入った', planOct.plans.length === 3, planOct.plans.length);
+check('予定にシフト記号が入る', planOct.plans[0].shift === '早', planOct.plans[0]);
+check('予定の勤務形態も入る', planOct.plans[0].workMode === '出社');
+
+const clear = call('assignShifts', {
+  assignments: [{ employeeId: 'E003', date: '2026-10-02', shift: '' }]
+}, ADMIN_TOKEN);
+check('空を指定すると消える', clear.cleared === 1, clear);
+check('予定が2日になった',
+  call('listPlans', { month: '2026-10', employeeId: 'E003' }, ADMIN_TOKEN).plans.length === 2);
+check('一般は他人のシフトを組めない',
+  call('assignShifts', { assignments: [{ employeeId: 'E002', date: '2026-10-05', shift: '日' }] },
+    MEMBER_TOKEN2).ok === false);
+check('一般は自分のシフトなら入れられる',
+  call('assignShifts', { assignments: [{ employeeId: 'E003', date: '2026-10-06', shift: '日' }] },
+    MEMBER_TOKEN2).ok === true);
+check('知らない記号は弾く',
+  call('assignShifts', { assignments: [{ employeeId: 'E003', date: '2026-10-07', shift: '謎' }] },
+    ADMIN_TOKEN).ok === false);
+
+console.log('\n=== 22. 先月のシフトを流用 ===');
+// 11月の各日は「28日前」を写す。11/5←10/8、11/6←10/9
+call('assignShifts', {
+  assignments: [
+    { employeeId: 'E003', date: '2026-10-08', shift: '早' },
+    { employeeId: 'E003', date: '2026-10-09', shift: '休' },
+    { employeeId: 'E004', date: '2026-10-08', shift: '遅' }
+  ]
+}, ADMIN_TOKEN);
+call('assignShifts', {
+  assignments: [{ employeeId: 'E003', date: '2026-11-05', shift: '日' }]
+}, ADMIN_TOKEN);   // 既に入っている日は上書きされないことの確認用
+
+const copied = call('copyShiftPattern', { month: '2026-11', employeeId: 'all' }, ADMIN_TOKEN);
+check('11月へ写せた', copied.ok === true, copied.error);
+const nov = call('shiftTable', { month: '2026-11', employeeId: 'all' }, ADMIN_TOKEN);
+check('11/6に10/9の公休が写った', nov.cells['E003|2026-11-06'] &&
+  nov.cells['E003|2026-11-06'].shift === '休', nov.cells['E003|2026-11-06']);
+check('11/5に10/8の早番が写った（別の人）', nov.cells['E004|2026-11-05'] &&
+  nov.cells['E004|2026-11-05'].shift === '遅', nov.cells['E004|2026-11-05']);
+check('既に入っていた11/5は上書きされない',
+  nov.cells['E003|2026-11-05'].shift === '日', nov.cells['E003|2026-11-05']);
+check('曜日がそろっている', Object.keys(nov.cells).every(k => {
+  const d = k.split('|')[1].split('-');
+  const cur = new Date(Number(d[0]), Number(d[1]) - 1, Number(d[2]));
+  const src = new Date(Number(d[0]), Number(d[1]) - 1, Number(d[2]) - 28);
+  return src.getDay() === cur.getDay();
+}));
+
+console.log('\n=== 23. シフトの休憩が実働計算に効く ===');
+H.setNow('2026-10-06T00:00:00Z');   // JST 09:00 (10/6) 日勤 09:00-18:00 休憩60
+const in6 = call('punch', { type: 'in', workMode: 'リモート' }, MEMBER_TOKEN2);
+check('10/6 出勤', in6.ok === true, in6.error);
+check('シフト記号が記録に入る', in6.record.shift === '日', in6.record.shift);
+H.setNow('2026-10-06T09:00:00Z');   // JST 18:00
+const out6 = call('punch', { type: 'out', workMode: 'リモート' }, MEMBER_TOKEN2);
+check('実働480分（休憩60を引いた）', out6.record.workMin === 480, out6.record.workMin);
+check('残業なし', out6.record.overMin === 0, out6.record.overMin);
+check('予定どおり', out6.record.judge === '予定どおり', out6.record.judge);
+
+console.log('\n=== 24. 予定登録でもシフトを選べる ===');
+// 時計を10月に進めたので、9月に取ったトークンは30日で失効している
+check('30日たったトークンは失効する',
+  call('bootstrap', {}, ADMIN_TOKEN).ok === false);
+const ADMIN_TOKEN2 = call('login', { employeeId: 'E001', pin: adminPin }).token;
+check('入り直せた', !!ADMIN_TOKEN2);
+const planByShift = call('savePlan', {
+  dates: ['2026-10-20', '2026-10-21'], shift: '遅', employeeId: 'E003'
+}, ADMIN_TOKEN2);
+check('シフト指定で登録できた', planByShift.saved === 2, planByShift);
+const p20 = G.findPlan_('E003', '2026-10-20');
+check('遅番の時刻が入る', G.normTime_(p20['出勤予定']) === '13:00' && G.normTime_(p20['退勤予定']) === '22:00');
+check('シフト記号も入る', String(p20['シフト']) === '遅');
+check('一般社員のシフト表は自分だけ',
+  call('shiftTable', { month: '2026-10', employeeId: 'all' },
+    call('login', { employeeId: 'E003', pin: '4321' }).token).members.length === 1);
 
 console.log('\n----------------------------------------');
 console.log(pass + ' 件成功 / ' + fail + ' 件失敗');

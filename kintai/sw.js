@@ -5,7 +5,7 @@
  * 打刻や予定のやり取りは別ドメイン（Apps Script）なので一切キャッシュしない。
  * 版を上げたいときは CACHE の数字を1つ増やす。
  */
-var CACHE = 'kintai-v1';
+var CACHE = 'kintai-v2';
 var SHELL = [
   './',
   'index.html',

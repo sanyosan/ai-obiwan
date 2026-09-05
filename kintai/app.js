@@ -27,7 +27,13 @@
     geo: null,
     calMonth: null,
     selected: {},
-    monthPlans: {}
+    monthPlans: {},
+    shifts: [],
+    shiftMap: {},
+    planShift: '',
+    brush: '',
+    table: null,
+    dirty: {}
   };
 
   /* ================= 通信 ================= */
@@ -243,6 +249,12 @@
       setupModePicker(d.workModes);
       fillSelect($('#plan-kind'), d.planKinds, '通常');
       fillSelect($('#plan-mode'), d.workModes, '出社');
+      fillSelect($('#sh-kind'), d.planKinds, '通常');
+      fillSelect($('#sh-mode'), d.workModes, '出社');
+      setShifts(d.shifts || []);
+      $('#tab-btn-shift').hidden = false;
+      document.querySelector('.tabbar').classList.add('six');
+      $('#shift-master-card').hidden = !d.employee.isAdmin;   // 区分の編集は管理者だけ
       setupMemberSelectors();
       registerDevice();
 
@@ -251,6 +263,7 @@
       $('#log-month').value = ym(now);
       $('#stats-month').value = ym(now);
       state.calMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      if (!$('#shift-month').value) $('#shift-month').value = ym(now);
       $('#plan-start').value = d.employee.defaultStart;
       $('#plan-end').value = d.employee.defaultEnd;
       renderCalendar();
@@ -415,6 +428,12 @@
   }
 
   function renderCalendar() {
+    buildCalendar();
+    loadMonthPlans(ym(state.calMonth));
+  }
+
+  /** カレンダーを描く。予定が入っている日はシフト記号を色つきで出す */
+  function buildCalendar() {
     var base = state.calMonth;
     var y = base.getFullYear(), m = base.getMonth();
     $('#cal-title').textContent = y + '年' + (m + 1) + '月';
@@ -430,22 +449,56 @@
       if (d.getMonth() !== m) cls.push('other');
       if (s === todayStr) cls.push('today');
       if (state.selected[s]) cls.push('on');
-      if (state.monthPlans[s]) cls.push('has');
-      html += '<button type="button" data-date="' + s + '" class="' + cls.join(' ') + '">' + d.getDate() + '</button>';
+      var plan = state.monthPlans[s];
+      var badge = '';
+      if (plan) {
+        cls.push('has');
+        var sh = state.shiftMap[plan.shift];
+        var label = plan.shift || (plan.kind !== '通常' ? plan.kind.slice(0, 1) : (plan.start || '').slice(0, 2));
+        badge = '<i style="background:' + esc(sh ? sh.color : '#6b7689') + '">' + esc(label) + '</i>';
+      }
+      html += '<button type="button" data-date="' + s + '" class="' + cls.join(' ') + '">' +
+        d.getDate() + badge + '</button>';
     }
     $('#cal-grid').innerHTML = html;
-
-    loadMonthPlans(ym(base));
   }
 
   function loadMonthPlans(month) {
     api('listPlans', { month: month, employeeId: planTargetId() }).then(function (d) {
       state.monthPlans = {};
       d.plans.forEach(function (p) { state.monthPlans[p.date] = p; });
-      $$('#cal-grid button').forEach(function (b) {
-        b.classList.toggle('has', !!state.monthPlans[b.dataset.date]);
-      });
-    }).catch(function () { /* カレンダーの点は無くても困らない */ });
+      buildCalendar();
+      renderPlanSummary();
+    }).catch(function () { /* カレンダーの記号は無くても困らない */ });
+  }
+
+  /** 月間予定のまとめ（出勤日数・休み・予定の実働） */
+  function renderPlanSummary() {
+    var workDays = 0, offDays = 0, minutes = 0;
+    Object.keys(state.monthPlans).forEach(function (date) {
+      var p = state.monthPlans[date];
+      if (!p.start) { offDays++; return; }
+      workDays++;
+      var s = hhmmToMin(p.start), e = hhmmToMin(p.end);
+      if (s === null || e === null) return;
+      var w = e - s;
+      if (w < 0) w += 1440;
+      var sh = state.shiftMap[p.shift];
+      minutes += Math.max(0, w - (sh ? sh.breakMin : 0));
+    });
+    var kpis = [
+      ['出勤予定', workDays + '日'],
+      ['休み', offDays + '日'],
+      ['予定の実働', minLabel(minutes)]
+    ];
+    $('#plan-summary').innerHTML = kpis.map(function (k) {
+      return '<div class="kpi"><b>' + esc(k[1]) + '</b><span>' + esc(k[0]) + '</span></div>';
+    }).join('');
+  }
+
+  function hhmmToMin(t) {
+    var m = /^(\d{1,2}):(\d{2})$/.exec(String(t || ''));
+    return m ? Number(m[1]) * 60 + Number(m[2]) : null;
   }
 
   function renderPlanList() {
@@ -455,7 +508,9 @@
       var box = $('#plan-list');
       if (!d.plans.length) { box.innerHTML = '<span class="empty">これからの予定はありません</span>'; return; }
       box.innerHTML = d.plans.map(function (p) {
-        var time = p.kind !== '通常' ? p.kind : p.start + '〜' + p.end;
+        var sh = state.shiftMap[p.shift];
+        var time = (sh ? sh.name + ' ' : '') +
+          (p.kind !== '通常' ? p.kind : p.start + '〜' + p.end);
         return '<div class="item">' +
           '<div class="main"><div class="times">' + esc(mdLabel(p.date)) + '　' + esc(time) + '</div>' +
           '<div class="sub">' + esc(p.workMode) + (p.note ? ' / ' + esc(p.note) : '') + '</div></div>' +
@@ -483,6 +538,7 @@
       dates: dates,
       start: $('#plan-start').value,
       end: $('#plan-end').value,
+      shift: state.planShift,
       workMode: $('#plan-mode').value,
       kind: $('#plan-kind').value,
       note: $('#plan-note').value,
@@ -496,6 +552,278 @@
       renderPlanList();
       loadApp();
     }).catch(function (e) { msg('#plan-msg', e.message, 'err'); });
+  }
+
+  /* ================= シフト ================= */
+
+  function setShifts(list) {
+    state.shifts = list || [];
+    state.shiftMap = {};
+    state.shifts.forEach(function (sh) { state.shiftMap[sh.code] = sh; });
+    renderPlanShiftChips();
+    renderPalette();
+  }
+
+  function shiftChipHtml(sh, on) {
+    return '<button type="button" data-code="' + esc(sh.code) + '" class="' + (on ? 'on' : '') + '">' +
+      '<span class="mark" style="background:' + esc(sh.color) + '">' + esc(sh.code) + '</span>' +
+      esc(sh.name) + '</button>';
+  }
+
+  /** 予定登録フォームの「シフトから選ぶ」 */
+  function renderPlanShiftChips() {
+    var box = $('#plan-shifts');
+    if (!box) return;
+    box.innerHTML = state.shifts.map(function (sh) {
+      return shiftChipHtml(sh, sh.code === state.planShift);
+    }).join('') +
+      '<button type="button" data-code="" class="' + (state.planShift ? '' : 'on') + '">時間を直接指定</button>';
+    box.onclick = function (ev) {
+      var b = ev.target.closest('button');
+      if (!b) return;
+      state.planShift = b.dataset.code || '';
+      var sh = state.shiftMap[state.planShift];
+      if (sh) {
+        $('#plan-start').value = sh.start;
+        $('#plan-end').value = sh.end;
+        $('#plan-mode').value = sh.workMode;
+        $('#plan-kind').value = sh.kind;
+      }
+      var holiday = !sh ? false : !sh.start;
+      $('#plan-start').disabled = holiday;
+      $('#plan-end').disabled = holiday;
+      renderPlanShiftChips();
+    };
+  }
+
+  /** シフト表で「今どのシフトを置くか」 */
+  function renderPalette() {
+    var box = $('#shift-palette');
+    if (!box) return;
+    box.innerHTML = state.shifts.map(function (sh) {
+      return shiftChipHtml(sh, sh.code === state.brush);
+    }).join('') +
+      '<button type="button" data-code="" class="' + (state.brush ? '' : 'on') + '">消す</button>';
+    box.onclick = function (ev) {
+      var b = ev.target.closest('button');
+      if (!b) return;
+      state.brush = b.dataset.code || '';
+      renderPalette();
+    };
+  }
+
+  function loadShiftTable() {
+    var box = $('#shift-grid');
+    box.innerHTML = '<span class="empty">読み込み中…</span>';
+    api('shiftTable', { month: $('#shift-month').value, employeeId: 'all' }).then(function (d) {
+      state.table = d;
+      state.dirty = {};
+      if (d.shifts && d.shifts.length) setShifts(d.shifts);
+      renderGrid();
+      renderShiftTotals();
+    }).catch(function (e) { box.innerHTML = '<span class="empty">' + esc(e.message) + '</span>'; });
+  }
+
+  function cellValue(key) {
+    if (Object.prototype.hasOwnProperty.call(state.dirty, key)) return state.dirty[key];
+    var c = state.table.cells[key];
+    return c ? c.shift : '';
+  }
+
+  function cellHasPlan(key) {
+    if (Object.prototype.hasOwnProperty.call(state.dirty, key)) return !!state.dirty[key];
+    return !!state.table.cells[key];
+  }
+
+  function renderGrid() {
+    var t = state.table;
+    if (!t) return;
+    var todayStr = ymd(new Date());
+
+    var head = '<tr><th class="name-col">氏名</th>' + t.days.map(function (d) {
+      var cls = 'day-head' + (d.dow === 0 ? ' sun' : d.dow === 6 ? ' sat' : '');
+      return '<th class="' + cls + '" data-col="' + d.date + '" title="この日を全員まとめて塗る">' +
+        '<b>' + d.day + '</b><span>' + DOW[d.dow] + '</span></th>';
+    }).join('') + '</tr>';
+
+    var body = t.members.map(function (m) {
+      var cells = t.days.map(function (d) {
+        var key = m.id + '|' + d.date;
+        var code = cellValue(key);
+        var sh = state.shiftMap[code];
+        var dirty = Object.prototype.hasOwnProperty.call(state.dirty, key);
+        var inner = code
+          ? '<span class="fill" style="background:' + esc(sh ? sh.color : '#6b7689') + '">' + esc(code) + '</span>'
+          : (cellHasPlan(key) ? '<span class="fill" style="background:#9aa3b4">・</span>' : '');
+        return '<td><button type="button" class="cell' + (dirty ? ' dirty' : '') +
+          (d.date === todayStr ? ' today' : '') + '" data-key="' + esc(key) + '">' + inner + '</button></td>';
+      }).join('');
+      return '<tr><td class="name-col" data-row="' + esc(m.id) + '" title="この人の平日をまとめて塗る">' +
+        esc(m.name) + '</td>' + cells + '</tr>';
+    }).join('');
+
+    var cover = '<tr class="cover-row"><td class="name-col">出勤人数</td>' +
+      t.days.map(function (d) {
+        var n = 0;
+        t.members.forEach(function (m) {
+          var code = cellValue(m.id + '|' + d.date);
+          var sh = state.shiftMap[code];
+          if (code && sh && sh.start) n++;
+          else if (!code && cellHasPlan(m.id + '|' + d.date) &&
+            state.table.cells[m.id + '|' + d.date] &&
+            state.table.cells[m.id + '|' + d.date].start) n++;
+        });
+        return '<td>' + (n || '') + '</td>';
+      }).join('') + '</tr>';
+
+    $('#shift-grid').innerHTML =
+      '<table class="shift-grid"><thead>' + head + '</thead><tbody>' + body + cover + '</tbody></table>';
+
+    updateShiftSaveButton();
+  }
+
+  function updateShiftSaveButton() {
+    var n = Object.keys(state.dirty).length;
+    $('#shift-save').textContent = n ? '保存（' + n + 'マス）' : '保存';
+    $('#shift-save').disabled = !n;
+    $('#shift-reload').disabled = !n;
+  }
+
+  function paintCell(key) {
+    var current = cellValue(key);
+    if (current === state.brush) {
+      // 同じものを二度押したら元に戻す（保存前の取り消し）
+      delete state.dirty[key];
+    } else {
+      state.dirty[key] = state.brush;
+    }
+    renderGrid();
+  }
+
+  function paintColumn(date) {
+    state.table.members.forEach(function (m) { state.dirty[m.id + '|' + date] = state.brush; });
+    renderGrid();
+    toast(mdLabel(date) + ' を全員そろえました');
+  }
+
+  function paintRow(employeeId) {
+    state.table.days.forEach(function (d) {
+      if (d.dow === 0 || d.dow === 6) return;      // 土日は触らない
+      state.dirty[employeeId + '|' + d.date] = state.brush;
+    });
+    renderGrid();
+    toast('平日をまとめて塗りました');
+  }
+
+  function saveShiftTable() {
+    var keys = Object.keys(state.dirty);
+    if (!keys.length) return;
+    msg('#shift-msg', '保存しています…');
+    var assignments = keys.map(function (k) {
+      var p = k.split('|');
+      return { employeeId: p[0], date: p[1], shift: state.dirty[k] };
+    });
+    api('assignShifts', { assignments: assignments }).then(function (d) {
+      msg('#shift-msg', d.saved + 'マスを登録、' + d.cleared + 'マスを削除しました。', 'ok');
+      toast('シフトを保存しました');
+      loadShiftTable();
+      loadApp();
+    }).catch(function (e) { msg('#shift-msg', e.message, 'err'); });
+  }
+
+  function renderShiftTotals() {
+    var t = state.table;
+    if (!t) return;
+    $('#shift-totals').innerHTML = t.totals.map(function (x) {
+      return '<div class="item"><div class="main"><div>' + esc(x.name) + '</div>' +
+        '<div class="sub">勤務 ' + x.workDays + '日 / 休み ' + x.offDays + '日</div></div>' +
+        '<span class="times">' + esc(x.workLabel || '0分') + '</span></div>';
+    }).join('') || '<span class="empty">まだ組まれていません</span>';
+  }
+
+  /* ---- シフト区分の編集 ---- */
+
+  function renderShiftMaster() {
+    $('#shift-master').innerHTML = state.shifts.map(function (sh) {
+      var time = sh.start ? sh.start + '〜' + sh.end + '（休憩' + sh.breakMin + '分）' : sh.kind;
+      return '<div class="item"><div class="main">' +
+        '<div><span class="shift-badge" style="background:' + esc(sh.color) + '">' + esc(sh.code) + '</span> ' +
+        esc(sh.name) + '</div>' +
+        '<div class="sub">' + esc(time) + '　' + esc(sh.workMode) + '</div></div>' +
+        '<button class="btn ghost sm" data-shift="' + esc(sh.code) + '">編集</button></div>';
+    }).join('') || '<span class="empty">シフト区分がありません</span>';
+
+    $('#shift-master').onclick = function (ev) {
+      var b = ev.target.closest('[data-shift]');
+      if (!b) return;
+      openShiftDialog(state.shiftMap[b.dataset.shift]);
+    };
+  }
+
+  function openShiftDialog(sh) {
+    $('#shift-dialog-title').textContent = sh ? 'シフト区分を編集' : 'シフト区分を追加';
+    $('#sh-original').value = sh ? sh.code : '';
+    $('#sh-code').value = sh ? sh.code : '';
+    $('#sh-name').value = sh ? sh.name : '';
+    $('#sh-start').value = sh ? sh.start : '09:00';
+    $('#sh-end').value = sh ? sh.end : '18:00';
+    $('#sh-break').value = sh ? sh.breakMin : 60;
+    $('#sh-color').value = sh ? sh.color : '#2f6fed';
+    $('#sh-mode').value = sh ? sh.workMode : '出社';
+    $('#sh-kind').value = sh ? sh.kind : '通常';
+    $('#sh-order').value = sh ? sh.order : (state.shifts.length + 1);
+    $('#sh-delete').hidden = !sh;
+    msg('#sh-msg', '');
+    $('#shift-dialog').showModal();
+  }
+
+  function saveShiftPattern(ev) {
+    ev.preventDefault();
+    var payload = {
+      code: $('#sh-code').value.trim(),
+      name: $('#sh-name').value.trim(),
+      start: $('#sh-start').value,
+      end: $('#sh-end').value,
+      breakMin: $('#sh-break').value,
+      color: $('#sh-color').value,
+      workMode: $('#sh-mode').value,
+      kind: $('#sh-kind').value,
+      order: $('#sh-order').value
+    };
+    if (!payload.code) { msg('#sh-msg', '記号を入れてください。', 'err'); return; }
+    msg('#sh-msg', '保存しています…');
+    api('saveShift', payload).then(function () {
+      $('#shift-dialog').close();
+      toast('シフト区分を保存しました');
+      refreshShifts();
+    }).catch(function (e) { msg('#sh-msg', e.message, 'err'); });
+  }
+
+  function deleteShiftPattern(ev) {
+    ev.preventDefault();
+    var code = $('#sh-original').value;
+    if (!code) return;
+    if (!confirm('「' + code + '」を消しますか？（すでに組んだシフトはそのまま残ります）')) return;
+    api('deleteShift', { code: code }).then(function () {
+      $('#shift-dialog').close();
+      toast('削除しました');
+      refreshShifts();
+    }).catch(function (e) { msg('#sh-msg', e.message, 'err'); });
+  }
+
+  function refreshShifts() {
+    return api('listShifts').then(function (d) {
+      setShifts(d.shifts);
+      if (state.me && state.me.isAdmin) renderShiftMaster();
+      renderGrid();
+    }).catch(function () { });
+  }
+
+  function renderShiftTab() {
+    if (!$('#shift-month').value) $('#shift-month').value = ym(new Date());
+    renderPalette();
+    if (state.me && state.me.isAdmin) renderShiftMaster();
+    loadShiftTable();
   }
 
   /* ================= 履歴 ================= */
@@ -515,7 +843,8 @@
           '<div class="main">' +
           '<div class="times">' + who + esc(mdLabel(r.date)) + '　' +
           esc(r.inTime || '--:--') + '〜' + esc(r.outTime || '--:--') + '</div>' +
-          '<div class="sub">予定 ' + esc(r.planStart || '--:--') + '〜' + esc(r.planEnd || '--:--') +
+          '<div class="sub">' + (r.shift ? esc(r.shift) + '　' : '') +
+          '予定 ' + esc(r.planStart || '--:--') + '〜' + esc(r.planEnd || '--:--') +
           '　' + esc(r.workMode || '-') +
           (r.workMin ? '　実働' + minLabel(r.workMin) : '') +
           (r.inPlace ? '<br>' + esc(r.inPlace) : '') +
@@ -671,7 +1000,7 @@
 
   function openTab(name) {
     $$('.tab').forEach(function (b) { b.classList.toggle('active', b.dataset.tab === name); });
-    ['home', 'plan', 'log', 'stats', 'more'].forEach(function (n) {
+    ['home', 'plan', 'shift', 'log', 'stats', 'more'].forEach(function (n) {
       $('#tab-' + n).hidden = (n !== name);
     });
     window.scrollTo(0, 0);
@@ -680,6 +1009,7 @@
     if (name === 'more') renderAdmin();
     if (name === 'home') refreshGeo();
     if (name === 'plan') { renderCalendar(); renderPlanList(); }
+    if (name === 'shift') renderShiftTab();
   }
 
   /* ================= イベント ================= */
@@ -759,6 +1089,32 @@
       $('#plan-start').disabled = holiday;
       $('#plan-end').disabled = holiday;
     };
+
+    $('#shift-month').onchange = loadShiftTable;
+    $('#shift-save').onclick = saveShiftTable;
+    $('#shift-reload').onclick = function () { state.dirty = {}; renderGrid(); msg('#shift-msg', ''); };
+    $('#shift-copy').onclick = function () {
+      if (!confirm('4週間前の並びを、まだ空いている日に写します。よろしいですか？')) return;
+      msg('#shift-msg', '写しています…');
+      api('copyShiftPattern', { month: $('#shift-month').value, employeeId: 'all' })
+        .then(function (d) {
+          msg('#shift-msg', (d.copied || 0) + 'マスを写しました。', 'ok');
+          loadShiftTable();
+        })
+        .catch(function (e) { msg('#shift-msg', e.message, 'err'); });
+    };
+    $('#shift-grid').onclick = function (ev) {
+      if (!state.table) return;
+      var cell = ev.target.closest('.cell');
+      if (cell) { paintCell(cell.dataset.key); return; }
+      var col = ev.target.closest('[data-col]');
+      if (col) { paintColumn(col.dataset.col); return; }
+      var row = ev.target.closest('[data-row]');
+      if (row) paintRow(row.dataset.row);
+    };
+    $('#shift-new').onclick = function () { openShiftDialog(null); };
+    $('#sh-save').onclick = saveShiftPattern;
+    $('#sh-delete').onclick = deleteShiftPattern;
 
     $('#log-month').onchange = renderLog;
     $('#log-employee').onchange = renderLog;

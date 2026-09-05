@@ -187,7 +187,7 @@ fs.readdirSync(GAS_DIR).filter(f => f.endsWith('.gs')).sort().forEach(f => {
 
 // const 宣言は sandbox のプロパティにならないので、明示的に取り出す
 vm.runInContext(`this.C = {
-  SHEET_EMPLOYEE, SHEET_PLAN, SHEET_RECORD, SHEET_DEVICE, SHEET_NOTIFY, SHEET_CONFIG,
+  SHEET_EMPLOYEE, SHEET_PLAN, SHEET_RECORD, SHEET_DEVICE, SHEET_NOTIFY, SHEET_CONFIG, SHEET_SHIFT,
   ROLE_ADMIN, ROLE_MEMBER, WORK_MODES, APP_VERSION
 };`, sandbox);
 

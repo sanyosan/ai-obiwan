@@ -32,6 +32,7 @@ function planToJson_(p) {
     date: normDate_(p['日付']),
     employeeId: String(p['社員ID']),
     name: String(p['氏名']),
+    shift: String(p['シフト'] || ''),
     start: normTime_(p['出勤予定']),
     end: normTime_(p['退勤予定']),
     workMode: String(p['勤務形態'] || MODE_OFFICE),
@@ -46,6 +47,7 @@ function recordToJson_(r) {
     date: normDate_(r['日付']),
     employeeId: String(r['社員ID']),
     name: String(r['氏名']),
+    shift: String(r['シフト'] || ''),
     planStart: normTime_(r['出勤予定']),
     planEnd: normTime_(r['退勤予定']),
     inTime: normTime_(r['出勤実績']),
@@ -88,15 +90,21 @@ function savePlan_(auth, payload) {
   });
   if (!dates.length) throw new Error('日付が指定されていません。');
 
-  const kind = PLAN_KINDS.indexOf(payload.kind) >= 0 ? payload.kind : '通常';
+  // シフト区分を指定されたら、時刻も勤務形態も区分もそこから取る
+  const shift = payload.shift ? findShift_(payload.shift) : null;
+  if (payload.shift && !shift) throw new Error('シフト区分が見つかりません: ' + payload.shift);
+
+  const kind = shift ? shift.kind
+    : (PLAN_KINDS.indexOf(payload.kind) >= 0 ? payload.kind : '通常');
   const isHoliday = (kind === '有給' || kind === '公休' || kind === '特別休暇');
-  const start = isHoliday ? '' : normTime_(payload.start || emp['標準出勤']);
-  const end = isHoliday ? '' : normTime_(payload.end || emp['標準退勤']);
+  const start = isHoliday ? '' : normTime_(shift ? shift.start : (payload.start || emp['標準出勤']));
+  const end = isHoliday ? '' : normTime_(shift ? shift.end : (payload.end || emp['標準退勤']));
   if (!isHoliday) {
     if (!timeToMin_(start) && timeToMin_(start) !== 0) throw new Error('出勤予定の時刻が不正です。');
     if (!timeToMin_(end) && timeToMin_(end) !== 0) throw new Error('退勤予定の時刻が不正です。');
   }
-  const workMode = WORK_MODES.indexOf(payload.workMode) >= 0 ? payload.workMode : MODE_OFFICE;
+  const workMode = shift ? shift.workMode
+    : (WORK_MODES.indexOf(payload.workMode) >= 0 ? payload.workMode : MODE_OFFICE);
   const note = String(payload.note || '');
 
   const existing = readAll_(SHEET_PLAN);
@@ -113,6 +121,7 @@ function savePlan_(auth, payload) {
       '日付': date,
       '社員ID': targetId,
       '氏名': String(emp['氏名']),
+      'シフト': shift ? shift.code : '',
       '出勤予定': start,
       '退勤予定': end,
       '勤務形態': workMode,
@@ -311,6 +320,7 @@ function createRecord_(emp, date, plan) {
     '日付': date,
     '社員ID': String(emp['社員ID']),
     '氏名': String(emp['氏名']),
+    'シフト': plan ? String(plan['シフト'] || '') : '',
     '出勤予定': plan ? normTime_(plan['出勤予定']) : '',
     '退勤予定': plan ? normTime_(plan['退勤予定']) : '',
     'ステータス': ST_NONE,
@@ -331,6 +341,7 @@ function syncRecordWithPlan_(employeeId, date) {
     return;
   }
   updateRow_(SHEET_RECORD, rec._row, {
+    'シフト': String(plan['シフト'] || ''),
     '出勤予定': normTime_(plan['出勤予定']),
     '退勤予定': normTime_(plan['退勤予定']),
     '更新日時': new Date()
@@ -362,7 +373,9 @@ function recalcRecord_(employeeId, date, cfg, emp) {
   if (actIn !== null && actOut !== null) {
     gross = actOut - actIn;
     if (gross < 0) gross += 24 * 60;   // 日をまたいだ場合
-    const baseBreak = Number(emp && emp['所定休憩(分)'] ? emp['所定休憩(分)'] : 0) ||
+    const shift = findShift_(rec['シフト']);
+    const baseBreak = (shift && shift.breakMin) ||
+      Number(emp && emp['所定休憩(分)'] ? emp['所定休憩(分)'] : 0) ||
       configNum_(cfg, '自動休憩(分)', 60);
     const threshold = configNum_(cfg, '自動休憩の基準(時間)', 6) * 60;
     breakMin = gross > threshold ? baseBreak : 0;

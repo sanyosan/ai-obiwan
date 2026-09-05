@@ -124,6 +124,7 @@ main {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;
   gap: 8px;
   font-size: 13px;
   font-weight: 700;
@@ -132,7 +133,8 @@ main {
   margin-bottom: 10px;
 }
 
-.head-tools { display: flex; gap: 6px; }
+.head-tools { display: flex; flex-wrap: wrap; gap: 6px; }
+.card-head > span { white-space: nowrap; }
 
 /* ---------- 時計 ---------- */
 
@@ -251,17 +253,133 @@ main {
 .cal-grid button.other { opacity: .3; }
 .cal-grid button.today { border-color: var(--accent); font-weight: 700; }
 .cal-grid button.on { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
-.cal-grid button.has::after {
-  content: "";
-  position: absolute;
-  bottom: 4px; left: 50%;
-  transform: translateX(-50%);
-  width: 4px; height: 4px;
-  border-radius: 50%;
-  background: var(--in);
+.cal-grid button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
 }
-.cal-grid button.on.has::after { background: #fff; }
+.cal-grid button i {
+  font-style: normal;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.4;
+  padding: 0 4px;
+  border-radius: 4px;
+  color: #fff;
+  max-width: 100%;
+  overflow: hidden;
+}
+.cal-grid button.on i { background: rgba(255, 255, 255, .35) !important; }
 .cal-tools { display: flex; gap: 8px; margin-top: 8px; }
+
+/* ---------- シフト ---------- */
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 11px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chips button .mark {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.chips button.on { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+
+.grid-wrap { border: 1px solid var(--line); border-radius: 10px; }
+table.shift-grid { border-collapse: separate; border-spacing: 0; font-size: 12px; }
+table.shift-grid th, table.shift-grid td { padding: 0; border: 0; text-align: center; }
+table.shift-grid .name-col {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--card);
+  text-align: left;
+  padding: 4px 8px;
+  min-width: 84px;
+  max-width: 84px;
+  border-right: 1px solid var(--line);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+table.shift-grid thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+}
+table.shift-grid thead th.name-col { z-index: 3; }
+table.shift-grid .day-head {
+  min-width: 34px;
+  padding: 3px 0 4px;
+  cursor: pointer;
+  line-height: 1.2;
+}
+table.shift-grid .day-head b { display: block; font-size: 13px; font-weight: 600; }
+table.shift-grid .day-head span { font-size: 10px; color: var(--muted); }
+table.shift-grid .sun b, table.shift-grid .sun span { color: var(--danger); }
+table.shift-grid .sat b, table.shift-grid .sat span { color: var(--accent); }
+table.shift-grid tbody tr + tr td { border-top: 1px solid var(--line); }
+
+.cell {
+  width: 100%;
+  min-width: 34px;
+  height: 34px;
+  border: 0;
+  border-left: 1px solid var(--line);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+}
+.cell .fill {
+  display: block;
+  margin: 3px;
+  border-radius: 6px;
+  line-height: 28px;
+  height: 28px;
+  color: #fff;
+}
+.cell.dirty { box-shadow: inset 0 0 0 2px var(--warn); }
+.cell.today { background: rgba(47, 111, 237, .08); }
+.cover-row td { font-size: 11px; color: var(--muted); padding: 3px 0; }
+.cover-row .name-col { color: var(--muted); font-size: 11px; }
+
+.shift-actions { display: flex; gap: 10px; margin-top: 12px; }
+.shift-actions .btn { flex: 1; }
+
+.shift-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
 
 /* ---------- リスト ---------- */
 
@@ -343,6 +461,8 @@ thead th { color: var(--muted); font-size: 11px; font-weight: 600; }
   padding-bottom: env(safe-area-inset-bottom);
   z-index: 20;
 }
+.tabbar.six { grid-template-columns: repeat(6, 1fr); }
+
 .tab {
   border: none;
   background: none;

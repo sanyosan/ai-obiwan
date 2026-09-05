@@ -100,9 +100,14 @@
     <section id="tab-plan" class="screen" hidden>
       <div class="card">
         <div class="card-head">
-          <span>予定を登録</span>
+          <span>月間予定</span>
           <select id="plan-employee" class="inline-select" hidden></select>
         </div>
+        <div id="plan-summary" class="kpi-grid">—</div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">日を選んで登録</div>
         <div class="cal">
           <div class="cal-head">
             <button id="cal-prev" class="btn ghost sm">‹</button>
@@ -115,6 +120,10 @@
             <button id="cal-weekdays" class="btn ghost sm">平日を全部選ぶ</button>
             <button id="cal-clear" class="btn ghost sm">選択を消す</button>
           </div>
+        </div>
+        <div class="field">
+          <span>シフトから選ぶ</span>
+          <div id="plan-shifts" class="chips"></div>
         </div>
         <div class="row">
           <label class="field half"><span>出勤予定</span><input id="plan-start" type="time" value="09:00"></label>
@@ -146,6 +155,44 @@
           </div>
         </div>
         <div id="log-list" class="list">—</div>
+      </div>
+    </section>
+
+    <!-- シフト表 -->
+    <section id="tab-shift" class="screen" hidden>
+      <div class="card">
+        <div class="card-head">
+          <span>月間シフト表</span>
+          <div class="head-tools">
+            <input id="shift-month" type="month" class="inline-select">
+            <button id="shift-copy" class="btn ghost sm">先月から流用</button>
+          </div>
+        </div>
+        <div class="field">
+          <span>置きたいシフトを選んでからマスを押す</span>
+          <div id="shift-palette" class="chips"></div>
+        </div>
+        <p class="hint">表は横にスクロールできます。日付を押すとその日を全員、名前を押すとその人の平日をまとめて塗ります。</p>
+        <div id="shift-grid" class="table-wrap grid-wrap">—</div>
+        <div class="shift-actions">
+          <button id="shift-save" class="btn primary">保存</button>
+          <button id="shift-reload" class="btn ghost">変更を取り消す</button>
+        </div>
+        <p id="shift-msg" class="msg"></p>
+      </div>
+
+      <div class="card">
+        <div class="card-head">ひとりあたりの合計</div>
+        <div id="shift-totals" class="list">—</div>
+      </div>
+
+      <div class="card" id="shift-master-card" hidden>
+        <div class="card-head">
+          <span>シフト区分</span>
+          <button id="shift-new" class="btn ghost sm">＋ 追加</button>
+        </div>
+        <div id="shift-master" class="list">—</div>
+        <p class="hint">早番・遅番などの型を決めておくと、シフト表はマスを押すだけで組めます。</p>
       </div>
     </section>
 
@@ -217,6 +264,7 @@
   <nav class="tabbar">
     <button data-tab="home" class="tab active"><span>⏱</span>ホーム</button>
     <button data-tab="plan" class="tab"><span>🗓</span>予定</button>
+    <button data-tab="shift" class="tab" id="tab-btn-shift" hidden><span>🗂</span>シフト</button>
     <button data-tab="log" class="tab"><span>📋</span>履歴</button>
     <button data-tab="stats" class="tab"><span>📊</span>統計</button>
     <button data-tab="more" class="tab"><span>⚙️</span>設定</button>
@@ -250,6 +298,37 @@
     <div class="dialog-actions">
       <button value="cancel" class="btn ghost">閉じる</button>
       <button id="emp-save" value="save" class="btn primary">保存</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- シフト区分の編集ダイアログ -->
+<dialog id="shift-dialog">
+  <form method="dialog" class="pane">
+    <h2 id="shift-dialog-title">シフト区分を追加</h2>
+    <input type="hidden" id="sh-original">
+    <div class="row">
+      <label class="field half"><span>記号（1〜2文字）</span><input id="sh-code" type="text" maxlength="4" required></label>
+      <label class="field half"><span>名称</span><input id="sh-name" type="text" placeholder="早番"></label>
+    </div>
+    <div class="row">
+      <label class="field half"><span>開始</span><input id="sh-start" type="time"></label>
+      <label class="field half"><span>終了</span><input id="sh-end" type="time"></label>
+    </div>
+    <div class="row">
+      <label class="field half"><span>休憩(分)</span><input id="sh-break" type="number" min="0" step="15" value="60"></label>
+      <label class="field half"><span>色</span><input id="sh-color" type="color" value="#2f6fed"></label>
+    </div>
+    <div class="row">
+      <label class="field half"><span>勤務形態</span><select id="sh-mode"></select></label>
+      <label class="field half"><span>区分</span><select id="sh-kind"></select></label>
+    </div>
+    <label class="field"><span>並び順</span><input id="sh-order" type="number" min="1" value="9"></label>
+    <p id="sh-msg" class="msg"></p>
+    <div class="dialog-actions">
+      <button id="sh-delete" value="delete" class="btn danger">削除</button>
+      <button value="cancel" class="btn ghost">閉じる</button>
+      <button id="sh-save" value="save" class="btn primary">保存</button>
     </div>
   </form>
 </dialog>

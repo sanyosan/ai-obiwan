@@ -86,6 +86,18 @@ function handle_(req) {
       case 'deletePlan':
         return ok_(withLock_(function () { return deletePlan_(auth, payload); }));
 
+      case 'shiftTable':
+        return ok_(shiftTable_(auth, payload));
+
+      case 'assignShifts':
+        return ok_(withLock_(function () { return assignShifts_(auth, payload); }));
+
+      case 'copyShiftPattern':
+        return ok_(withLock_(function () { return copyShiftPattern_(auth, payload); }));
+
+      case 'listShifts':
+        return ok_({ shifts: listShifts_(false) });
+
       case 'listPlans':
         return ok_({ plans: listPlans_(auth, payload) });
 
@@ -116,6 +128,12 @@ function handle_(req) {
 
       case 'saveSettings':
         return ok_(saveSettings_(requireAdmin_(auth), payload));
+
+      case 'saveShift':
+        return ok_(saveShift_(requireAdmin_(auth), payload));
+
+      case 'deleteShift':
+        return ok_(deleteShift_(requireAdmin_(auth), payload));
 
       case 'listDevices':
         return ok_({ devices: listDevices_(requireAdmin_(auth)) });
@@ -164,6 +182,7 @@ function bootstrap_(auth) {
     upcomingPlans: listPlans_(auth, { from: from, to: to, employeeId: auth.employee.id }),
     workModes: WORK_MODES,
     planKinds: PLAN_KINDS,
+    shifts: listShifts_(false),
     office: {
       name: String(cfg['事業所名'] || ''),
       lat: cfg['事業所緯度'] === '' ? null : Number(cfg['事業所緯度']),
