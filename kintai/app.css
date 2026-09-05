@@ -1,0 +1,515 @@
+/* 未来創造家 勤怠 ─ スマホ優先。PCでは中央に寄せる */
+
+:root {
+  --bg: #f4f6fa;
+  --card: #ffffff;
+  --ink: #1a2233;
+  --muted: #6b7689;
+  --line: #e3e7ef;
+  --accent: #2f6fed;
+  --accent-ink: #ffffff;
+  --in: #12a06a;
+  --out: #e0642f;
+  --warn: #d4a017;
+  --danger: #d64545;
+  --radius: 14px;
+  --shadow: 0 1px 2px rgba(20, 30, 60, .06), 0 8px 24px rgba(20, 30, 60, .06);
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f141f;
+    --card: #18202f;
+    --ink: #e8ecf5;
+    --muted: #94a0b6;
+    --line: #27324a;
+    --accent: #5b8dff;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 8px 24px rgba(0, 0, 0, .25);
+  }
+}
+
+* { box-sizing: border-box; }
+
+/* .screen の display 指定がブラウザ既定の [hidden] を打ち消してしまうので明示する */
+[hidden] { display: none !important; }
+
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", "Yu Gothic UI", sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-text-size-adjust: 100%;
+}
+
+button, input, select { font: inherit; color: inherit; }
+
+/* ---------- 画面の骨組み ---------- */
+
+.screen.full {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+}
+
+.pane {
+  width: 100%;
+  max-width: 420px;
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 24px 20px;
+}
+
+.brand { margin: 0 0 4px; font-size: 22px; letter-spacing: .02em; }
+.lead { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
+.hint { color: var(--muted); font-size: 12px; margin: 8px 0 0; word-break: break-all; }
+
+main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 12px 14px calc(84px + env(safe-area-inset-bottom));
+}
+
+/* ---------- 上部バー ---------- */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+  background: #1f2a44;
+  color: #fff;
+}
+
+.topbar .who { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.topbar strong { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.tag {
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .18);
+}
+
+.status {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .16);
+  white-space: nowrap;
+}
+.status.working { background: var(--in); }
+.status.done { background: var(--out); }
+
+/* ---------- カード ---------- */
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: .04em;
+  margin-bottom: 10px;
+}
+
+.head-tools { display: flex; flex-wrap: wrap; gap: 6px; }
+.card-head > span { white-space: nowrap; }
+
+/* ---------- 時計 ---------- */
+
+.clock { text-align: center; padding: 18px 0 22px; }
+#clock-time {
+  font-size: 60px;
+  font-weight: 200;
+  line-height: 1;
+  letter-spacing: .02em;
+  font-variant-numeric: tabular-nums;
+}
+.clock-date { color: var(--muted); font-size: 14px; margin-top: 6px; }
+
+.plan-line { font-size: 15px; }
+.plan-line .big { font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* ---------- 入力 ---------- */
+
+.field { display: block; margin-bottom: 14px; }
+.field > span { display: block; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.field input, .field select {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+}
+.field input:focus, .field select:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.row { display: flex; gap: 10px; }
+.half { flex: 1; min-width: 0; }
+
+.check { display: flex; align-items: center; gap: 8px; margin: 6px 0 14px; font-size: 14px; }
+.check input { width: 18px; height: 18px; }
+
+.inline-select {
+  padding: 5px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  font-size: 13px;
+}
+
+/* ---------- ボタン ---------- */
+
+.btn {
+  border: 1px solid var(--line);
+  background: var(--card);
+  border-radius: 10px;
+  padding: 11px 16px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: transform .06s ease, filter .15s ease;
+}
+.btn:active { transform: scale(.985); }
+.btn.block { display: block; width: 100%; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.btn.ghost { background: transparent; color: var(--muted); }
+.btn.sm { padding: 5px 10px; font-size: 12px; border-radius: 8px; }
+.item .btn { white-space: nowrap; flex: 0 0 auto; }
+.btn.link { background: none; border: none; color: var(--accent); width: 100%; margin-top: 10px; font-weight: 500; }
+.btn.danger { color: var(--danger); border-color: var(--danger); background: transparent; }
+.btn[disabled] { opacity: .45; pointer-events: none; }
+
+.punch { display: flex; gap: 12px; margin: 4px 0 8px; }
+.punch-btn {
+  flex: 1;
+  padding: 22px 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #fff;
+  border: none;
+  border-radius: 16px;
+  letter-spacing: .08em;
+}
+.punch-btn.in { background: var(--in); }
+.punch-btn.out { background: var(--out); }
+
+/* ---------- 勤務形態のセグメント ---------- */
+
+.segmented { display: flex; gap: 6px; }
+.segmented button {
+  flex: 1;
+  padding: 10px 4px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--bg);
+  cursor: pointer;
+}
+.segmented button.on { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+
+.geo { margin-top: 10px; font-size: 12px; color: var(--muted); }
+.geo.ok { color: var(--in); }
+.geo.ng { color: var(--danger); }
+
+/* ---------- カレンダー ---------- */
+
+.cal { margin-bottom: 14px; }
+.cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; font-weight: 600; }
+.cal-dow, .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-dow span { text-align: center; font-size: 11px; color: var(--muted); }
+.cal-dow span:first-child { color: var(--danger); }
+.cal-dow span:last-child { color: var(--accent); }
+.cal-grid button {
+  aspect-ratio: 1;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bg);
+  font-size: 13px;
+  cursor: pointer;
+  position: relative;
+  padding: 0;
+}
+.cal-grid button.other { opacity: .3; }
+.cal-grid button.today { border-color: var(--accent); font-weight: 700; }
+.cal-grid button.on { background: var(--accent); color: var(--accent-ink); border-color: transparent; }
+.cal-grid button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+}
+.cal-grid button i {
+  font-style: normal;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.4;
+  padding: 0 4px;
+  border-radius: 4px;
+  color: #fff;
+  max-width: 100%;
+  overflow: hidden;
+}
+.cal-grid button.on i { background: rgba(255, 255, 255, .35) !important; }
+.cal-tools { display: flex; gap: 8px; margin-top: 8px; }
+
+/* ---------- シフト ---------- */
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chips button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 11px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--bg);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.chips button .mark {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.chips button.on { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+
+.grid-wrap { border: 1px solid var(--line); border-radius: 10px; }
+table.shift-grid { border-collapse: separate; border-spacing: 0; font-size: 12px; }
+table.shift-grid th, table.shift-grid td { padding: 0; border: 0; text-align: center; }
+table.shift-grid .name-col {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: var(--card);
+  text-align: left;
+  padding: 4px 8px;
+  min-width: 84px;
+  max-width: 84px;
+  border-right: 1px solid var(--line);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+table.shift-grid thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+}
+table.shift-grid thead th.name-col { z-index: 3; }
+table.shift-grid .day-head {
+  min-width: 34px;
+  padding: 3px 0 4px;
+  cursor: pointer;
+  line-height: 1.2;
+}
+table.shift-grid .day-head b { display: block; font-size: 13px; font-weight: 600; }
+table.shift-grid .day-head span { font-size: 10px; color: var(--muted); }
+table.shift-grid .sun b, table.shift-grid .sun span { color: var(--danger); }
+table.shift-grid .sat b, table.shift-grid .sat span { color: var(--accent); }
+table.shift-grid tbody tr + tr td { border-top: 1px solid var(--line); }
+
+.cell {
+  width: 100%;
+  min-width: 34px;
+  height: 34px;
+  border: 0;
+  border-left: 1px solid var(--line);
+  background: transparent;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+}
+.cell .fill {
+  display: block;
+  margin: 3px;
+  border-radius: 6px;
+  line-height: 28px;
+  height: 28px;
+  color: #fff;
+}
+.cell.dirty { box-shadow: inset 0 0 0 2px var(--warn); }
+.cell.today { background: rgba(47, 111, 237, .08); }
+.cover-row td { font-size: 11px; color: var(--muted); padding: 3px 0; }
+.cover-row .name-col { color: var(--muted); font-size: 11px; }
+
+.shift-actions { display: flex; gap: 10px; margin-top: 12px; }
+.shift-actions .btn { flex: 1; }
+
+.shift-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+/* ---------- リスト ---------- */
+
+.list { display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.item .main { min-width: 0; }
+.item .sub { font-size: 12px; color: var(--muted); }
+.item .times { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  background: var(--line);
+  color: var(--muted);
+}
+.badge.ok { background: rgba(18, 160, 106, .14); color: var(--in); }
+.badge.late { background: rgba(212, 160, 23, .16); color: var(--warn); }
+.badge.bad { background: rgba(214, 69, 69, .14); color: var(--danger); }
+.badge.remote { background: rgba(47, 111, 237, .14); color: var(--accent); }
+
+.record { font-size: 14px; }
+.record dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 0; }
+.record dt { color: var(--muted); font-size: 13px; }
+.record dd { margin: 0; font-variant-numeric: tabular-nums; }
+
+/* ---------- 統計 ---------- */
+
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 8px; }
+.kpi {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px;
+  text-align: center;
+}
+.kpi b {
+  display: block;
+  font-size: 20px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.kpi span { font-size: 11px; color: var(--muted); }
+
+.bar { margin-top: 14px; }
+.bar-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.bar-track { height: 10px; border-radius: 999px; background: var(--line); overflow: hidden; display: flex; }
+.bar-track i { display: block; height: 100%; }
+.bar-legend { display: flex; gap: 12px; font-size: 11px; color: var(--muted); margin-top: 6px; }
+.bar-legend em { font-style: normal; display: inline-flex; align-items: center; gap: 4px; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+
+.table-wrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; white-space: nowrap; }
+th, td { padding: 7px 10px; border-bottom: 1px solid var(--line); text-align: right; }
+th:first-child, td:first-child { text-align: left; position: sticky; left: 0; background: var(--card); }
+thead th { color: var(--muted); font-size: 11px; font-weight: 600; }
+
+/* ---------- タブバー ---------- */
+
+.tabbar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  background: var(--card);
+  border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 20;
+}
+.tabbar.six { grid-template-columns: repeat(6, 1fr); }
+
+.tab {
+  border: none;
+  background: none;
+  padding: 8px 0 10px;
+  font-size: 10px;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  cursor: pointer;
+}
+.tab span { font-size: 19px; line-height: 1; }
+.tab.active { color: var(--accent); font-weight: 700; }
+
+/* ---------- その他 ---------- */
+
+.msg { font-size: 13px; margin: 10px 0 0; min-height: 1.2em; }
+.msg.err { color: var(--danger); }
+.msg.ok { color: var(--in); }
+
+dialog {
+  border: none;
+  border-radius: var(--radius);
+  padding: 0;
+  max-width: 440px;
+  width: calc(100% - 32px);
+  background: var(--card);
+  color: var(--ink);
+}
+dialog::backdrop { background: rgba(10, 15, 30, .5); }
+.dialog-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(84px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  background: #1f2a44;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  z-index: 50;
+  box-shadow: var(--shadow);
+  max-width: calc(100% - 32px);
+  text-align: center;
+}
+
+.empty { color: var(--muted); font-size: 13px; padding: 6px 0; }

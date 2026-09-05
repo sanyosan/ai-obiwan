@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>未来創造家 勤怠</title>
+<meta name="description" content="出退勤の予定登録と打刻、GPS・リモート記録、月次統計">
+<meta name="theme-color" content="#1f2a44">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="勤怠">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+<!-- 初期設定：GASのURLとアプリキーを入れる -->
+<section id="scr-config" class="screen full">
+  <div class="pane">
+    <h1 class="brand">未来創造家 勤怠</h1>
+    <p class="lead">はじめに、会社から配られた接続先を入れてください。一度入れれば次回からは不要です。</p>
+    <label class="field">
+      <span>APIのURL</span>
+      <input id="cfg-url" type="url" inputmode="url" placeholder="https://script.google.com/macros/s/.../exec" autocomplete="off">
+    </label>
+    <label class="field">
+      <span>アプリキー</span>
+      <input id="cfg-key" type="text" placeholder="24桁の英数字" autocomplete="off">
+    </label>
+    <button id="cfg-save" class="btn primary block">接続する</button>
+    <p id="cfg-msg" class="msg"></p>
+    <p class="hint">QRコードから開いた場合は自動で入力されています。</p>
+  </div>
+</section>
+
+<!-- ログイン -->
+<section id="scr-login" class="screen full" hidden>
+  <div class="pane">
+    <h1 class="brand">未来創造家 勤怠</h1>
+    <p class="lead">自分の名前を選んでPINを入れてください。</p>
+    <label class="field">
+      <span>名前</span>
+      <select id="login-member"></select>
+    </label>
+    <label class="field">
+      <span>PIN（4桁）</span>
+      <input id="login-pin" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="8" placeholder="••••" autocomplete="current-password">
+    </label>
+    <button id="login-go" class="btn primary block">ログイン</button>
+    <p id="login-msg" class="msg"></p>
+    <button id="login-reset" class="btn link">接続先を設定し直す</button>
+  </div>
+</section>
+
+<!-- 本体 -->
+<div id="app" hidden>
+  <header class="topbar">
+    <div class="who">
+      <strong id="me-name">—</strong>
+      <span id="me-role" class="tag"></span>
+    </div>
+    <span id="me-status" class="status">未出勤</span>
+  </header>
+
+  <main>
+    <!-- ホーム -->
+    <section id="tab-home" class="screen">
+      <div class="clock">
+        <div id="clock-time">--:--</div>
+        <div id="clock-date" class="clock-date">—</div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">今日の予定</div>
+        <div id="today-plan" class="plan-line">読み込み中…</div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">勤務形態</div>
+        <div id="mode-picker" class="segmented"></div>
+        <div id="geo-state" class="geo">位置情報：未取得</div>
+      </div>
+
+      <div class="punch">
+        <button id="btn-in" class="btn punch-btn in">出勤</button>
+        <button id="btn-out" class="btn punch-btn out">退勤</button>
+      </div>
+      <p id="punch-msg" class="msg"></p>
+
+      <div class="card">
+        <div class="card-head">今日の記録</div>
+        <div id="today-record" class="record">まだ打刻がありません</div>
+      </div>
+    </section>
+
+    <!-- 予定 -->
+    <section id="tab-plan" class="screen" hidden>
+      <div class="card">
+        <div class="card-head">
+          <span>月間予定</span>
+          <select id="plan-employee" class="inline-select" hidden></select>
+        </div>
+        <div id="plan-summary" class="kpi-grid">—</div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">日を選んで登録</div>
+        <div class="cal">
+          <div class="cal-head">
+            <button id="cal-prev" class="btn ghost sm">‹</button>
+            <span id="cal-title">—</span>
+            <button id="cal-next" class="btn ghost sm">›</button>
+          </div>
+          <div class="cal-dow"><span>日</span><span>月</span><span>火</span><span>水</span><span>木</span><span>金</span><span>土</span></div>
+          <div id="cal-grid" class="cal-grid"></div>
+          <div class="cal-tools">
+            <button id="cal-weekdays" class="btn ghost sm">平日を全部選ぶ</button>
+            <button id="cal-clear" class="btn ghost sm">選択を消す</button>
+          </div>
+        </div>
+        <div class="field">
+          <span>シフトから選ぶ</span>
+          <div id="plan-shifts" class="chips"></div>
+        </div>
+        <div class="row">
+          <label class="field half"><span>出勤予定</span><input id="plan-start" type="time" value="09:00"></label>
+          <label class="field half"><span>退勤予定</span><input id="plan-end" type="time" value="18:00"></label>
+        </div>
+        <div class="row">
+          <label class="field half"><span>勤務形態</span><select id="plan-mode"></select></label>
+          <label class="field half"><span>区分</span><select id="plan-kind"></select></label>
+        </div>
+        <label class="field"><span>メモ</span><input id="plan-note" type="text" placeholder="任意"></label>
+        <button id="plan-save" class="btn primary block">この内容で登録</button>
+        <p id="plan-msg" class="msg"></p>
+      </div>
+
+      <div class="card">
+        <div class="card-head">これからの予定</div>
+        <div id="plan-list" class="list">—</div>
+      </div>
+    </section>
+
+    <!-- 履歴 -->
+    <section id="tab-log" class="screen" hidden>
+      <div class="card">
+        <div class="card-head">
+          <span>履歴</span>
+          <div class="head-tools">
+            <select id="log-employee" class="inline-select" hidden></select>
+            <input id="log-month" type="month" class="inline-select">
+          </div>
+        </div>
+        <div id="log-list" class="list">—</div>
+      </div>
+    </section>
+
+    <!-- シフト表 -->
+    <section id="tab-shift" class="screen" hidden>
+      <div class="card">
+        <div class="card-head">
+          <span>月間シフト表</span>
+          <div class="head-tools">
+            <input id="shift-month" type="month" class="inline-select">
+            <button id="shift-copy" class="btn ghost sm">先月から流用</button>
+          </div>
+        </div>
+        <div class="field">
+          <span>置きたいシフトを選んでからマスを押す</span>
+          <div id="shift-palette" class="chips"></div>
+        </div>
+        <p class="hint">表は横にスクロールできます。日付を押すとその日を全員、名前を押すとその人の平日をまとめて塗ります。</p>
+        <div id="shift-grid" class="table-wrap grid-wrap">—</div>
+        <div class="shift-actions">
+          <button id="shift-save" class="btn primary">保存</button>
+          <button id="shift-reload" class="btn ghost">変更を取り消す</button>
+        </div>
+        <p id="shift-msg" class="msg"></p>
+      </div>
+
+      <div class="card">
+        <div class="card-head">ひとりあたりの合計</div>
+        <div id="shift-totals" class="list">—</div>
+      </div>
+
+      <div class="card" id="shift-master-card" hidden>
+        <div class="card-head">
+          <span>シフト区分</span>
+          <button id="shift-new" class="btn ghost sm">＋ 追加</button>
+        </div>
+        <div id="shift-master" class="list">—</div>
+        <p class="hint">早番・遅番などの型を決めておくと、シフト表はマスを押すだけで組めます。</p>
+      </div>
+    </section>
+
+    <!-- 統計 -->
+    <section id="tab-stats" class="screen" hidden>
+      <div class="card">
+        <div class="card-head">
+          <span>月次サマリ</span>
+          <div class="head-tools">
+            <select id="stats-employee" class="inline-select" hidden></select>
+            <input id="stats-month" type="month" class="inline-select">
+          </div>
+        </div>
+        <div id="stats-kpi" class="kpi-grid">—</div>
+        <div id="stats-remote"></div>
+      </div>
+      <div class="card" id="stats-table-card" hidden>
+        <div class="card-head">メンバー別</div>
+        <div id="stats-table" class="table-wrap"></div>
+      </div>
+    </section>
+
+    <!-- 設定 -->
+    <section id="tab-more" class="screen" hidden>
+      <div class="card">
+        <div class="card-head">この端末</div>
+        <label class="field"><span>端末名</span><input id="dev-name" type="text" placeholder="前岡のiPhone"></label>
+        <div id="dev-id" class="hint">—</div>
+        <button id="dev-save" class="btn block">端末名を保存</button>
+      </div>
+
+      <div class="card">
+        <div class="card-head">PINの変更</div>
+        <div class="row">
+          <label class="field half"><span>今のPIN</span><input id="pin-cur" type="password" inputmode="numeric" maxlength="8"></label>
+          <label class="field half"><span>新しいPIN</span><input id="pin-new" type="password" inputmode="numeric" maxlength="8"></label>
+        </div>
+        <button id="pin-save" class="btn block">PINを変更</button>
+        <p id="pin-msg" class="msg"></p>
+      </div>
+
+      <div id="admin-block" hidden>
+        <div class="card">
+          <div class="card-head">
+            <span>社員</span>
+            <button id="emp-new" class="btn ghost sm">＋ 追加</button>
+          </div>
+          <div id="emp-list" class="list">—</div>
+        </div>
+        <div class="card">
+          <div class="card-head">アプリの設定</div>
+          <div id="settings-list" class="list">—</div>
+          <button id="settings-save" class="btn block">設定を保存</button>
+          <p id="settings-msg" class="msg"></p>
+        </div>
+        <div class="card">
+          <div class="card-head">登録された端末</div>
+          <div id="device-list" class="list">—</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <button id="btn-logout" class="btn block danger">ログアウト</button>
+        <p class="hint" id="app-version">—</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <button data-tab="home" class="tab active"><span>⏱</span>ホーム</button>
+    <button data-tab="plan" class="tab"><span>🗓</span>予定</button>
+    <button data-tab="shift" class="tab" id="tab-btn-shift" hidden><span>🗂</span>シフト</button>
+    <button data-tab="log" class="tab"><span>📋</span>履歴</button>
+    <button data-tab="stats" class="tab"><span>📊</span>統計</button>
+    <button data-tab="more" class="tab"><span>⚙️</span>設定</button>
+  </nav>
+</div>
+
+<!-- 社員の編集ダイアログ -->
+<dialog id="emp-dialog">
+  <form method="dialog" class="pane">
+    <h2 id="emp-dialog-title">社員を追加</h2>
+    <input type="hidden" id="emp-id">
+    <label class="field"><span>氏名</span><input id="emp-name" type="text" required></label>
+    <label class="field"><span>カナ</span><input id="emp-kana" type="text"></label>
+    <label class="field"><span>メールアドレス</span><input id="emp-email" type="email" placeholder="通知の送り先"></label>
+    <div class="row">
+      <label class="field half"><span>権限</span>
+        <select id="emp-role"><option>一般</option><option>管理者</option></select>
+      </label>
+      <label class="field half"><span>PIN</span><input id="emp-pin" type="text" inputmode="numeric" maxlength="8" placeholder="空なら自動発行"></label>
+    </div>
+    <div class="row">
+      <label class="field half"><span>標準出勤</span><input id="emp-start" type="time" value="09:00"></label>
+      <label class="field half"><span>標準退勤</span><input id="emp-end" type="time" value="18:00"></label>
+    </div>
+    <div class="row">
+      <label class="field half"><span>所定休憩(分)</span><input id="emp-break" type="number" min="0" step="15" value="60"></label>
+      <label class="field half"><span>入社日</span><input id="emp-joined" type="date"></label>
+    </div>
+    <label class="check"><input id="emp-active" type="checkbox" checked><span>在籍中</span></label>
+    <p id="emp-msg" class="msg"></p>
+    <div class="dialog-actions">
+      <button value="cancel" class="btn ghost">閉じる</button>
+      <button id="emp-save" value="save" class="btn primary">保存</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- シフト区分の編集ダイアログ -->
+<dialog id="shift-dialog">
+  <form method="dialog" class="pane">
+    <h2 id="shift-dialog-title">シフト区分を追加</h2>
+    <input type="hidden" id="sh-original">
+    <div class="row">
+      <label class="field half"><span>記号（1〜2文字）</span><input id="sh-code" type="text" maxlength="4" required></label>
+      <label class="field half"><span>名称</span><input id="sh-name" type="text" placeholder="早番"></label>
+    </div>
+    <div class="row">
+      <label class="field half"><span>開始</span><input id="sh-start" type="time"></label>
+      <label class="field half"><span>終了</span><input id="sh-end" type="time"></label>
+    </div>
+    <div class="row">
+      <label class="field half"><span>休憩(分)</span><input id="sh-break" type="number" min="0" step="15" value="60"></label>
+      <label class="field half"><span>色</span><input id="sh-color" type="color" value="#2f6fed"></label>
+    </div>
+    <div class="row">
+      <label class="field half"><span>勤務形態</span><select id="sh-mode"></select></label>
+      <label class="field half"><span>区分</span><select id="sh-kind"></select></label>
+    </div>
+    <label class="field"><span>並び順</span><input id="sh-order" type="number" min="1" value="9"></label>
+    <p id="sh-msg" class="msg"></p>
+    <div class="dialog-actions">
+      <button id="sh-delete" value="delete" class="btn danger">削除</button>
+      <button value="cancel" class="btn ghost">閉じる</button>
+      <button id="sh-save" value="save" class="btn primary">保存</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="app.js"></script>
+</body>
+</html>
