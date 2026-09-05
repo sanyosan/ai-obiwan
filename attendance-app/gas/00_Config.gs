@@ -67,7 +67,8 @@ const DEFAULT_CONFIG = [
   ['管理者へ通知', 'ON', '打刻のたびに管理者へも通知するか'],
   ['本人へ通知', 'ON', '打刻した本人へも通知するか'],
   ['Webhook URL', '', 'Slack / Google Chat / Discord の受信Webhook（任意）'],
-  ['予定変更を通知', 'ON', '勤務予定の登録・変更・削除を通知するか']
+  ['予定変更を通知', 'ON', '勤務予定の登録・変更・削除を通知するか'],
+  ['ログイン有効日数', '180', 'PINを聞かれずに使える日数。短くするほど安全、長くするほど楽']
 ];
 
 /** シフト区分の初期値。運用しながらアプリの管理画面で足し引きできる */
@@ -107,5 +108,5 @@ const PROP_SPREADSHEET_ID = 'SPREADSHEET_ID';
 const PROP_APP_KEY = 'APP_KEY';
 const PROP_TOKEN_PREFIX = 'tok_';
 
-/** ログイントークンの有効日数 */
-const TOKEN_DAYS = 30;
+/** ログイントークンの有効日数（設定シートの「ログイン有効日数」で変えられる） */
+const TOKEN_DAYS = 180;

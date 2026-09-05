@@ -67,7 +67,8 @@ function login_(employeeId, pin) {
   cache.remove(lockKey);
 
   const token = Utilities.getUuid().replace(/-/g, '');
-  const exp = Date.now() + TOKEN_DAYS * 24 * 60 * 60 * 1000;
+  const days = configNum_(getConfig_(), 'ログイン有効日数', TOKEN_DAYS);
+  const exp = Date.now() + days * 24 * 60 * 60 * 1000;
   PropertiesService.getScriptProperties()
     .setProperty(PROP_TOKEN_PREFIX + token, JSON.stringify({ e: String(employeeId), exp: exp }));
 
