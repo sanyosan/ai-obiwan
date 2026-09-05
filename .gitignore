@@ -6,3 +6,6 @@
 *.jpg
 *.jpeg
 *.webp
+
+# 勤怠アプリのPWAアイコンは公開物なのでコミットする
+!kintai/icons/*.png

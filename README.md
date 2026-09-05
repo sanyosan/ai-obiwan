@@ -22,3 +22,12 @@ Chrome / Edge 前提（ワイプ演出で `@property` を使用）。
 
 背景画像・章扉の立ち絵はこの公開リポジトリには含めていない。
 存在しないファイルは黙って無視されるので、画像なしでもスライドは成立する。
+
+## 勤怠アプリ
+
+同じリポジトリに、出退勤の予定登録と打刻を行う自作アプリを置いている。
+
+- `kintai/` … スマホのホーム画面に置けるアプリ本体（PWA。iPhone / Android / PC）
+- `attendance-app/` … Google Apps Script とスプレッドシートのバックエンド
+
+セットアップ手順は [`attendance-app/README.md`](attendance-app/README.md) を参照。
