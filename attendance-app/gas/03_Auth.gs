@@ -3,7 +3,7 @@
  *
  * スマホから使うので Google ログインは前提にしない。
  * 「社員を選ぶ + 4桁PIN」でログインし、あとはトークンで通す。
- * トークンは Script Properties に置き、30日で失効する。
+ * トークンは Script Properties に置き、設定シートの「ログイン有効日数」で失効する。
  */
 
 /** ログイン画面に出す社員の一覧（氏名だけ。PINやメールは返さない） */
@@ -67,7 +67,8 @@ function login_(employeeId, pin) {
   cache.remove(lockKey);
 
   const token = Utilities.getUuid().replace(/-/g, '');
-  const exp = Date.now() + TOKEN_DAYS * 24 * 60 * 60 * 1000;
+  const days = configNum_(getConfig_(), 'ログイン有効日数', TOKEN_DAYS);
+  const exp = Date.now() + days * 24 * 60 * 60 * 1000;
   PropertiesService.getScriptProperties()
     .setProperty(PROP_TOKEN_PREFIX + token, JSON.stringify({ e: String(employeeId), exp: exp }));
 

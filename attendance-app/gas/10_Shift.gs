@@ -311,6 +311,6 @@ function notifyShiftChange_(touched, employees, byName) {
       '操作者: ' + byName,
       'アプリの「予定」タブで確認してください。'
     ].join('\n');
-    dispatch_(emp, 'シフト更新 ' + String(emp['氏名']), body, 'シフト更新', cfg);
+    dispatch_(emp, 'シフト更新 ' + String(emp['氏名']), body, 'シフト更新', cfg, COLOR_INFO);
   });
 }

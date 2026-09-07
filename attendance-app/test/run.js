@@ -351,11 +351,10 @@ check('残業なし', out6.record.overMin === 0, out6.record.overMin);
 check('予定どおり', out6.record.judge === '予定どおり', out6.record.judge);
 
 console.log('\n=== 24. 予定登録でもシフトを選べる ===');
-// 時計を10月に進めたので、9月に取ったトークンは30日で失効している
-check('30日たったトークンは失効する',
-  call('bootstrap', {}, ADMIN_TOKEN).ok === false);
-const ADMIN_TOKEN2 = call('login', { employeeId: 'E001', pin: adminPin }).token;
-check('入り直せた', !!ADMIN_TOKEN2);
+// 有効日数は既定180日なので、1か月たっても入りっぱなしのまま
+check('1か月ではログインが切れない',
+  call('bootstrap', {}, ADMIN_TOKEN).ok === true);
+const ADMIN_TOKEN2 = ADMIN_TOKEN;
 const planByShift = call('savePlan', {
   dates: ['2026-10-20', '2026-10-21'], shift: '遅', employeeId: 'E003'
 }, ADMIN_TOKEN2);
@@ -367,7 +366,29 @@ check('一般社員のシフト表は自分だけ',
   call('shiftTable', { month: '2026-10', employeeId: 'all' },
     call('login', { employeeId: 'E003', pin: '4321' }).token).members.length === 1);
 
-console.log('\n=== 25. 貼り付け用の1枚版 ===');
+console.log('\n=== 25. ログインの有効期間 ===');
+// 設定シートで短くすると、そのとおりに失効する
+call('saveSettings', { settings: [{ key: 'ログイン有効日数', value: '1' }] }, ADMIN_TOKEN2);
+const shortLogin = call('login', { employeeId: 'E001', pin: adminPin });
+check('短い有効期間でログインできる', shortLogin.ok === true, shortLogin.error);
+check('その場では使える', call('bootstrap', {}, shortLogin.token).ok === true);
+H.setNow('2026-10-08T09:00:00Z');   // 2日進める
+check('1日に設定したら2日後には切れる',
+  call('bootstrap', {}, shortLogin.token).ok === false);
+// 期限切れは requireAuth_ がその場で捨てるので、掃除を待つ必要はない
+check('切れたトークンはその場で消える',
+  H.propsStore['tok_' + shortLogin.token] === undefined);
+// 掃除は、触られないまま残った古いトークンのためにある
+H.propsStore['tok_dummyexpired'] = JSON.stringify({ e: 'E001', exp: 1 });
+G.cleanupTokens();
+check('放置された古いトークンは掃除で消える',
+  H.propsStore['tok_dummyexpired'] === undefined);
+// 元に戻す
+const longToken = call('login', { employeeId: 'E001', pin: adminPin }).token;
+call('saveSettings', { settings: [{ key: 'ログイン有効日数', value: '180' }] }, longToken);
+check('設定を戻せた', String(G.getConfig_()['ログイン有効日数']) === '180');
+
+console.log('\n=== 26. 貼り付け用の1枚版 ===');
 const { execFileSync } = require('child_process');
 const path = require('path');
 try {
