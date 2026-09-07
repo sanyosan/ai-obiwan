@@ -21,7 +21,7 @@
  */
 
 const APP_NAME = '未来創造家 勤怠';
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.2.0';
 const TZ = 'Asia/Tokyo';
 
 /** シート名 */
@@ -81,7 +81,7 @@ const DEFAULT_CONFIG = [
   ['メール通知', 'ON', 'ON / OFF'],
   ['管理者へ通知', 'ON', '打刻のたびに管理者へも通知するか'],
   ['本人へ通知', 'ON', '打刻した本人へも通知するか'],
-  ['Webhook URL', '', 'Slack / Google Chat / Discord の受信Webhook（任意）'],
+  ['Webhook URL', '', 'Slackなどの受信Webhook。Slackは色分けして届く（任意）'],
   ['予定変更を通知', 'ON', '勤務予定の登録・変更・削除を通知するか'],
   ['ログイン有効日数', '180', 'PINを聞かれずに使える日数。短くするほど安全、長くするほど楽']
 ];
@@ -97,6 +97,12 @@ const DEFAULT_SHIFTS = [
   ['休', '公休', '', '', 0, '出社', '公休', '#9aa3b4', 7, true],
   ['有', '有給', '', '', 0, '出社', '有給', '#6b7689', 8, true]
 ];
+
+/** 通知の色（Slackの左に出る帯） */
+const COLOR_OK = '#12a06a';      // 予定どおり
+const COLOR_WARN = '#d4a017';    // 遅刻・早退
+const COLOR_ALERT = '#d64545';   // 未打刻・欠勤
+const COLOR_INFO = '#2f6fed';    // 予定やシフトの変更
 
 /** ステータス */
 const ST_NONE = '未出勤';
@@ -490,7 +496,7 @@ function reverseGeocode_(lat, lng) {
  *
  * スマホから使うので Google ログインは前提にしない。
  * 「社員を選ぶ + 4桁PIN」でログインし、あとはトークンで通す。
- * トークンは Script Properties に置き、30日で失効する。
+ * トークンは Script Properties に置き、設定シートの「ログイン有効日数」で失効する。
  */
 
 /** ログイン画面に出す社員の一覧（氏名だけ。PINやメールは返さない） */
@@ -1634,7 +1640,8 @@ function notifyPunch_(emp, rec, type, cfg) {
   }
   if (rec.deviceName) lines.push('端末 ' + rec.deviceName);
 
-  dispatch_(emp, title, lines.join('\n'), isIn ? '出勤打刻' : '退勤打刻', cfg);
+  const color = (rec.lateMin > 0 || rec.earlyMin > 0) ? COLOR_WARN : COLOR_OK;
+  dispatch_(emp, title, lines.join('\n'), isIn ? '出勤打刻' : '退勤打刻', cfg, color);
 }
 
 /** 勤務予定の登録・変更・削除の通知 */
@@ -1653,12 +1660,12 @@ function notifyPlanChange_(emp, dates, start, end, kind, workMode, byName, delet
     lines.push('時間: ' + (start || '--:--') + '〜' + (end || '--:--') + '（' + (workMode || '-') + '）');
   }
   lines.push('操作者: ' + byName);
-  dispatch_(emp, head + ' ' + String(emp['氏名']), lines.join('\n'), head, cfg);
+  dispatch_(emp, head + ' ' + String(emp['氏名']), lines.join('\n'), head, cfg, COLOR_INFO);
 }
 
 /** 未打刻アラートなど */
 function notifyAlert_(emp, title, body) {
-  dispatch_(emp, title, body, 'アラート', getConfig_());
+  dispatch_(emp, title, body, 'アラート', getConfig_(), COLOR_ALERT);
 }
 
 /** 社員の追加など、特定の個人に紐づかない連絡 */
@@ -1667,7 +1674,7 @@ function notifySimple_(title, body, kind) {
 }
 
 /** 実際に送る。宛先は「本人」と「管理者全員」 */
-function dispatch_(emp, subject, body, kind, cfg) {
+function dispatch_(emp, subject, body, kind, cfg, color) {
   cfg = cfg || getConfig_();
   const to = [];
   if (emp && configOn_(cfg, '本人へ通知', true)) {
@@ -1699,7 +1706,7 @@ function dispatch_(emp, subject, body, kind, cfg) {
   const hook = String(cfg['Webhook URL'] || '').trim();
   if (hook) {
     try {
-      postWebhook_(hook, body);
+      postWebhook_(hook, body, { title: subject, color: color || COLOR_INFO });
       result.push('Webhook OK');
     } catch (err) {
       result.push('Webhook失敗: ' + err);
@@ -1709,15 +1716,64 @@ function dispatch_(emp, subject, body, kind, cfg) {
   logNotify_(kind, emp, body, to.join(','), result.join(' / ') || '送信先なし');
 }
 
-/** Slack / Google Chat / Discord に合わせて本文のキーを変える */
-function postWebhook_(url, text) {
-  const payload = /discord\.com|discordapp\.com/.test(url) ? { content: text } : { text: text };
-  UrlFetchApp.fetch(url, {
+/**
+ * Webhookに投げる。送り先によって形が違うので合わせる。
+ *  Slack   … 左に色帯を出したいので attachments
+ *  Discord … content でないと受け取らない
+ *  それ以外（Google Chat など）… text
+ */
+function postWebhook_(url, text, opts) {
+  opts = opts || {};
+  let payload;
+  if (/discord(app)?\.com/.test(url)) {
+    payload = { content: text };
+  } else if (/hooks\.slack\.com/.test(url)) {
+    payload = {
+      text: opts.title || String(text).split('\n')[0],
+      attachments: [{
+        color: opts.color || COLOR_INFO,
+        blocks: [{ type: 'section', text: { type: 'mrkdwn', text: text } }]
+      }]
+    };
+  } else {
+    payload = { text: text };
+  }
+
+  const res = UrlFetchApp.fetch(url, {
     method: 'post',
     contentType: 'application/json',
     payload: JSON.stringify(payload),
     muteHttpExceptions: true
   });
+  const code = res.getResponseCode ? res.getResponseCode() : 200;
+  if (code >= 300) {
+    throw new Error('Webhookが ' + code + ' を返しました: ' +
+      String(res.getContentText ? res.getContentText() : '').slice(0, 120));
+  }
+}
+
+/**
+ * 通知の設定を確かめる。Apps Script のエディタから実行すると
+ * 管理者あてにテストのメールとWebhookが1通ずつ飛ぶ。
+ */
+function testNotify() {
+  const cfg = getConfig_();
+  const hook = String(cfg['Webhook URL'] || '').trim();
+  const lines = [
+    '【テスト送信】' + APP_NAME,
+    '通知の設定を確かめるために送っています。',
+    'これが届いていれば、打刻や未打刻アラートも同じ経路で届きます。',
+    '送信時刻: ' + fmtStamp_(new Date())
+  ];
+  dispatch_(null, '通知テスト', lines.join('\n'), 'テスト', cfg, COLOR_OK);
+
+  const msg = [
+    'メール通知: ' + (configOn_(cfg, 'メール通知', true) ? 'ON' : 'OFF'),
+    'Webhook: ' + (hook ? hook.replace(/\/[^/]+$/, '/****') : '未設定'),
+    '結果は通知ログシートに残ります。'
+  ].join('\n');
+  Logger.log(msg);
+  return msg;
 }
 
 function logNotify_(kind, emp, body, to, result) {
@@ -2174,6 +2230,6 @@ function notifyShiftChange_(touched, employees, byName) {
       '操作者: ' + byName,
       'アプリの「予定」タブで確認してください。'
     ].join('\n');
-    dispatch_(emp, 'シフト更新 ' + String(emp['氏名']), body, 'シフト更新', cfg);
+    dispatch_(emp, 'シフト更新 ' + String(emp['氏名']), body, 'シフト更新', cfg, COLOR_INFO);
   });
 }

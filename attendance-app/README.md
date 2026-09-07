@@ -18,6 +18,7 @@
 - `kintai/` … スマホアプリの本体（HTML/CSS/JS だけ。どこに置いても動く）
 - `attendance-app/gas/` … Google Apps Script のコード
 - `attendance-app/test/` … サーバー側の動作確認（Node で動く）
+- [`CHANGELOG.md`](CHANGELOG.md) … 更新履歴
 
 ---
 
@@ -158,7 +159,37 @@ npx @google/clasp open-script
 3. **設定** … `事業所緯度` `事業所経度` を入れる。
    Googleマップで事業所を右クリック → 出てくる数字が「緯度, 経度」。
    `事業所半径(m)` の内側なら「事業所内」と判定される。
-4. 通知を Slack 等にも流すなら `Webhook URL` に受信Webhookを入れる。
+4. 通知を Slack 等にも流すなら `Webhook URL` に受信Webhookを入れる（次の手順B-2）。
+
+### B-2. Slack に通知を流す（任意）
+
+メールだけだと埋もれるので、Slackにも同じ通知を流せる。**5分で終わる。**
+
+1. Slack で通知を出したいチャンネルを決める（例: `#勤怠`）
+2. https://api.slack.com/apps → **Create New App** → From scratch
+   → アプリ名（例: 勤怠通知）とワークスペースを選んで作る
+3. 左メニュー **Incoming Webhooks** → スイッチを **On**
+4. 下の **Add New Webhook to Workspace** → チャンネルを選んで「許可する」
+5. 出てきた `https://hooks.slack.com/services/…` をコピー
+6. スプレッドシートの **設定** シート → `Webhook URL` の値の欄に貼る
+7. Apps Script のエディタで関数 `testNotify` を選んで実行
+   → Slack にテストメッセージが届けば完了
+
+届く通知は左に色帯が付く。
+
+| 色 | 意味 |
+|---|---|
+| 緑 | 予定どおりの打刻 |
+| 黄 | 遅刻・早退 |
+| 赤 | 未打刻・欠勤アラート |
+| 青 | 予定・シフトの変更 |
+
+> Webhook URL は**それを知っている人なら誰でもそのチャンネルに投稿できる**鍵。
+> スプレッドシートの外に貼らないこと。漏れたら手順3の画面から作り直す（古いURLは Revoke）。
+
+Google Chat と Discord の受信Webhookもそのまま使える（色帯はSlackだけ）。
+うまく届かないときは **通知ログ** シートの「結果」欄を見る。
+`Webhookが 404 を返しました` ならURLの貼り間違いか、Webhookが失効している。
 
 ### C. アプリ（PWA）を公開する
 

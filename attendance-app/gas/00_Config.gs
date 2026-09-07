@@ -6,7 +6,7 @@
  */
 
 const APP_NAME = '未来創造家 勤怠';
-const APP_VERSION = '1.1.0';
+const APP_VERSION = '1.2.0';
 const TZ = 'Asia/Tokyo';
 
 /** シート名 */
@@ -66,7 +66,7 @@ const DEFAULT_CONFIG = [
   ['メール通知', 'ON', 'ON / OFF'],
   ['管理者へ通知', 'ON', '打刻のたびに管理者へも通知するか'],
   ['本人へ通知', 'ON', '打刻した本人へも通知するか'],
-  ['Webhook URL', '', 'Slack / Google Chat / Discord の受信Webhook（任意）'],
+  ['Webhook URL', '', 'Slackなどの受信Webhook。Slackは色分けして届く（任意）'],
   ['予定変更を通知', 'ON', '勤務予定の登録・変更・削除を通知するか'],
   ['ログイン有効日数', '180', 'PINを聞かれずに使える日数。短くするほど安全、長くするほど楽']
 ];
@@ -82,6 +82,12 @@ const DEFAULT_SHIFTS = [
   ['休', '公休', '', '', 0, '出社', '公休', '#9aa3b4', 7, true],
   ['有', '有給', '', '', 0, '出社', '有給', '#6b7689', 8, true]
 ];
+
+/** 通知の色（Slackの左に出る帯） */
+const COLOR_OK = '#12a06a';      // 予定どおり
+const COLOR_WARN = '#d4a017';    // 遅刻・早退
+const COLOR_ALERT = '#d64545';   // 未打刻・欠勤
+const COLOR_INFO = '#2f6fed';    // 予定やシフトの変更
 
 /** ステータス */
 const ST_NONE = '未出勤';
