@@ -13,3 +13,7 @@
 # clasp の接続先とログイン情報（個人・プロジェクト固有なので共有しない）
 attendance-app/.clasp.json
 .clasprc.json
+
+# 登壇の要件定義は公開しない（private な案件情報の構造を含む）
+docs/PLAN-ep7.md
+docs/EP7-SCRIPT.md

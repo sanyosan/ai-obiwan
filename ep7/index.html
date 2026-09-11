@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>見せる力 — マンスリーAIオビワン EPISODE Ⅶ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Noto+Sans+JP:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#03050A;
+  --gold:#FFE81F;
+  --saber:#6BE85A;
+  --saber-dim:#2E6B3E;
+  --holo:#5CC8F5;
+  --red:#E23B3B;
+  --steel:#8FA3B8;
+  --line:#1B2736;
+  --text:#D3DEE8;
+  --sans:'Noto Sans JP',sans-serif;
+  --disp:'Anton',sans-serif;
+  --mono:'JetBrains Mono',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--void);color:var(--text);font-family:var(--sans);font-weight:300;-webkit-font-smoothing:antialiased}
+
+#stars,#neb{position:fixed;inset:0;pointer-events:none;z-index:0}
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none;background-size:100% auto;background-position:center top;background-repeat:no-repeat;opacity:0;transition:opacity .8s ease}
+#bg.on{opacity:.85}
+#bgveil{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:linear-gradient(90deg,rgba(3,5,10,.80) 0%,rgba(3,5,10,.42) 40%,rgba(3,5,10,.05) 72%),
+             linear-gradient(180deg,rgba(3,5,10,.30),transparent 34%,rgba(3,5,10,.62))}
+#stars{background:
+  radial-gradient(1px 1px at 12% 18%,#fff,transparent),
+  radial-gradient(1px 1px at 27% 62%,#cfe4f5,transparent),
+  radial-gradient(1px 1px at 41% 31%,#fff,transparent),
+  radial-gradient(1px 1px at 58% 77%,#bcd6ea,transparent),
+  radial-gradient(1px 1px at 69% 14%,#fff,transparent),
+  radial-gradient(1px 1px at 84% 48%,#dceaf7,transparent),
+  radial-gradient(1px 1px at 93% 82%,#fff,transparent),
+  radial-gradient(1px 1px at 7% 88%,#cfe4f5,transparent),
+  radial-gradient(1px 1px at 35% 92%,#fff,transparent),
+  radial-gradient(1.6px 1.6px at 76% 33%,#fff,transparent),
+  radial-gradient(1.6px 1.6px at 22% 40%,#fff,transparent),
+  radial-gradient(1.6px 1.6px at 63% 22%,#eaf4ff,transparent);
+  opacity:.28}
+#neb{background:radial-gradient(60% 45% at 78% 78%,rgba(107,232,90,.07),transparent 70%),radial-gradient(50% 40% at 14% 16%,rgba(92,200,245,.04),transparent 70%)}
+
+/* hyperspace streaks on slide change */
+#warp{position:fixed;inset:0;pointer-events:none;z-index:8;opacity:0}
+#warp.go{animation:warp .5s ease-out}
+#warp i{position:absolute;left:50%;top:50%;width:2px;height:44vh;background:linear-gradient(180deg,transparent,#EAF6FF);transform-origin:50% 0}
+@keyframes warp{0%{opacity:0;transform:scale(.2)}40%{opacity:.55}100%{opacity:0;transform:scale(1.9)}}
+
+.slide{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;padding:8vh 8vw 13vh;z-index:2}
+.slide::before{content:'';position:absolute;left:4.5vw;right:4.5vw;top:5vh;bottom:8vh;
+  background:rgba(3,5,10,.68);border-radius:6px;
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);z-index:-1}
+#top::before,#crawlSlide::before,#open1::before{display:none}
+.slide.on{display:flex;animation:in .5s ease both}
+@keyframes in{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.slide.on{animation:none}#warp{display:none}}
+
+#hud{position:fixed;bottom:2.6vh;left:8vw;right:8vw;display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono);font-size:.7rem;letter-spacing:.14em;color:#3F5165;z-index:9}
+#hud .ep{color:var(--saber);opacity:.6}
+#hud .ep::before{content:'◈ '}
+
+h1,h2,p.lead,.sub,.eyebrow,ul.plain li,.ep-div .tag,.fig .cap,.dos .txt,.dos .lbl{text-shadow:0 2px 14px rgba(3,5,10,.92),0 0 34px rgba(3,5,10,.7)}
+.eyebrow{font-family:var(--mono);font-size:.74rem;letter-spacing:.26em;color:var(--saber);margin-bottom:3vh}
+h1{font-weight:900;font-size:clamp(2.1rem,5.2vw,4.2rem);line-height:1.22;color:#fff}
+h2{font-weight:700;font-size:clamp(1.7rem,3.6vw,2.8rem);line-height:1.32;color:#fff;margin-bottom:4vh}
+p.lead{font-size:clamp(1rem,1.5vw,1.26rem);line-height:2;color:#B9C8D6;max-width:46ch}
+.sub{font-size:clamp(.9rem,1.2vw,1.04rem);line-height:1.95;color:var(--steel);max-width:54ch;margin-top:3vh}
+strong{font-weight:500;color:#fff}
+em{font-style:normal;color:var(--gold)}
+.gr{color:var(--saber)}
+.rd{color:var(--red)}
+
+#open1{justify-content:center;align-items:flex-start}
+#open1 p{font-size:clamp(1.05rem,2.3vw,1.95rem);color:#5AA9E6;line-height:1.85;letter-spacing:.05em}
+
+/* TOP — 手前から奥へ */
+#top{align-items:center;justify-content:center;text-align:center;overflow:hidden;perspective:760px}
+#grid{position:absolute;left:-20%;right:-20%;bottom:-2vh;height:52vh;z-index:0;
+  background:
+    repeating-linear-gradient(90deg,rgba(107,232,90,.34) 0 1px,transparent 1px 5.2%),
+    repeating-linear-gradient(0deg,rgba(92,200,245,.30) 0 1px,transparent 1px 9%);
+  transform:perspective(340px) rotateX(76deg);transform-origin:50% 100%;
+  -webkit-mask-image:linear-gradient(180deg,transparent,#000 42%);mask-image:linear-gradient(180deg,transparent,#000 42%);opacity:0}
+.slide.on #grid{animation:gridin 1.6s .2s ease forwards,gridmove 3.4s 1.2s linear infinite}
+@keyframes gridin{to{opacity:.85}}
+@keyframes gridmove{to{background-position:0 9%,0 9%}}
+#shock{position:absolute;left:50%;top:50%;width:12vmin;height:12vmin;margin:-6vmin 0 0 -6vmin;border-radius:50%;
+  border:2px solid rgba(234,255,230,.9);box-shadow:0 0 40px rgba(107,232,90,.6),inset 0 0 30px rgba(92,200,245,.5);opacity:0;z-index:1}
+.slide.on #shock{animation:shock 1.5s .15s cubic-bezier(.1,.7,.2,1) forwards}
+@keyframes shock{0%{opacity:0;transform:scale(.2)}12%{opacity:.95}100%{opacity:0;transform:scale(16)}}
+#topInner{position:relative;z-index:2}
+.slide.on #topInner{animation:recede 9.5s cubic-bezier(.14,.6,.18,1) forwards}
+@keyframes recede{0%{transform:scale(5.2);opacity:0;filter:blur(14px)}6%{transform:scale(4.3);opacity:1;filter:blur(0)}100%{transform:scale(.2);opacity:.14;filter:blur(0)}}
+@media (prefers-reduced-motion:reduce){.slide.on #topInner{animation:none;transform:scale(.9)}.slide.on #grid,.slide.on #shock{animation:none}}
+.wordmark{font-family:var(--disp);line-height:.84;
+  font-size:clamp(3rem,13vw,10rem);
+  background:linear-gradient(102deg,#FFE81F 0%,#FFF8B0 18%,#6BE85A 36%,#5CC8F5 52%,#C77DFF 68%,#FFE81F 86%,#FFF8B0 100%);
+  background-size:280% 100%;
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;
+  filter:drop-shadow(0 0 18px rgba(255,232,31,.45)) drop-shadow(0 0 46px rgba(92,200,245,.30));
+  animation:irid 7s linear infinite}
+@keyframes irid{to{background-position:280% 0}}
+.wordmark .l2{display:block;letter-spacing:.16em;font-size:.62em}
+.jptitle{font-weight:900;color:#fff;font-size:clamp(1.1rem,3.1vw,2.4rem);letter-spacing:.14em;margin-top:2.2vh;
+  background:linear-gradient(180deg,#F4F7FA,#9FB0BF);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.epline{font-family:var(--mono);font-size:clamp(.62rem,1.1vw,.86rem);letter-spacing:.4em;color:var(--saber);margin-top:2.6vh}
+
+/* event */
+#event{align-items:flex-start;justify-content:center}
+#event .badge{font-family:var(--mono);font-size:.72rem;letter-spacing:.3em;color:var(--gold);margin-bottom:3vh}
+#event .name{font-weight:900;font-size:clamp(2rem,6vw,4.6rem);line-height:1.18;color:#fff}
+#event .name span{color:var(--saber)}
+#event .when{margin-top:4.5vh;display:flex;flex-wrap:wrap;gap:1.2rem 3rem;align-items:baseline;font-family:var(--mono);font-size:clamp(.95rem,1.7vw,1.4rem);color:var(--gold);letter-spacing:.1em}
+#event .when .at{color:var(--steel)}
+.blade{margin-top:5vh;height:3px;width:0;border-radius:3px;background:linear-gradient(90deg,#EAFFE6,var(--saber));box-shadow:0 0 10px var(--saber),0 0 26px rgba(107,232,90,.5)}
+.slide.on .blade{animation:ignite 1.2s .3s cubic-bezier(.2,.8,.2,1) forwards}
+@keyframes ignite{to{width:62%}}
+#hero{margin-top:4vh;max-height:34vh;border:1px solid var(--line);border-radius:3px;display:none}
+
+/* crawl */
+#crawlSlide{padding:0;overflow:hidden}
+#crawlView{position:absolute;inset:0;perspective:400px;perspective-origin:50% 100%;overflow:hidden}
+#crawl{position:absolute;top:105%;left:50%;width:78%;
+  transform:translateX(-50%) rotateX(58deg);transform-origin:50% 100%;
+  color:var(--gold);text-align:justify;font-weight:700;
+  font-size:clamp(1rem,2.05vw,1.75rem);line-height:1.6}
+#crawl h3{text-align:center;font-size:1.24em;margin-bottom:1.5em;letter-spacing:.06em;font-weight:900}
+#crawl p{margin-bottom:1.15em}
+@media (prefers-reduced-motion:no-preference){#crawlSlide.on #crawl{animation:crawl 52s linear forwards}}
+@keyframes crawl{from{top:105%}to{top:-330%}}
+#crawlSlide::after{content:'';position:absolute;top:0;left:0;right:0;height:36%;background:linear-gradient(180deg,var(--void) 14%,transparent);pointer-events:none;z-index:3}
+
+/* chapter divider + character slot */
+.ep-div{align-items:flex-start}
+.ep-div .ep-no{font-family:var(--mono);font-size:.8rem;letter-spacing:.34em;color:var(--gold);margin-bottom:2.4vh}
+.ep-div h1{max-width:22ch}
+.ep-div .tag{margin-top:3vh;font-size:clamp(.9rem,1.2vw,1.05rem);color:var(--steel);max-width:42ch;line-height:1.9}
+.charslot{position:absolute;right:5vw;bottom:0;top:0;width:34vw;display:flex;align-items:center;justify-content:flex-end;pointer-events:none;z-index:1}
+.charslot img{max-height:74vh;max-width:100%;object-fit:contain;display:none;opacity:.9;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 22%,#000 100%);
+  mask-image:linear-gradient(90deg,transparent,#000 22%,#000 100%)}
+
+/* figure */
+.fig{padding:5vh 5vw 11vh;justify-content:flex-start}
+.fig .cap{font-family:var(--mono);font-size:.72rem;letter-spacing:.2em;color:var(--steel);margin-bottom:2vh}
+.fig img{width:100%;max-height:74vh;object-fit:contain;display:block;border:1px solid var(--line);border-radius:3px}
+
+/* kit */
+.kit{display:grid;grid-template-columns:repeat(4,1fr);gap:1.8vw;margin-top:2vh}
+.kit div{border:1px solid var(--line);border-radius:3px;padding:3vh 1.3vw;display:flex;flex-direction:column;gap:1.1vh;min-height:24vh;justify-content:flex-end;background:rgba(6,11,20,.80)}
+.kit .k{font-family:var(--mono);font-size:.66rem;letter-spacing:.16em;color:var(--saber)}
+.kit .n{font-weight:700;font-size:clamp(1rem,1.6vw,1.34rem);color:#fff;line-height:1.35}
+.kit .d{font-size:.84rem;color:var(--steel);line-height:1.7}
+
+/* hologram panel */
+.holo{position:relative;border:1px solid rgba(92,200,245,.45);border-radius:3px;padding:3.4vh 2.4vw;background:linear-gradient(180deg,rgba(92,200,245,.09),rgba(92,200,245,.02));overflow:hidden;margin-top:1vh}
+.holo::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(180deg,rgba(92,200,245,.10) 0 1px,transparent 1px 4px);pointer-events:none}
+@media (prefers-reduced-motion:no-preference){.slide.on .holo{animation:flick 5s infinite}}
+@keyframes flick{0%,96%,100%{opacity:1}97%{opacity:.72}98.5%{opacity:.93}}
+.holo .ttl{font-family:var(--mono);font-size:.72rem;letter-spacing:.22em;color:var(--holo);margin-bottom:2vh}
+.holo p{font-size:clamp(.98rem,1.42vw,1.24rem);line-height:1.95;color:#CFE6F3;max-width:52ch}
+.holo b{font-weight:500;color:#fff}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:2vw;margin-top:2vh}
+.steps div{border:1px solid var(--line);border-left:2px solid var(--saber);border-radius:0 3px 3px 0;padding:2.6vh 1.4vw;background:rgba(6,11,20,.80)}
+.steps .s{font-family:var(--mono);font-size:.66rem;letter-spacing:.16em;color:var(--saber);display:block;margin-bottom:1.2vh}
+.steps .n{font-weight:700;font-size:clamp(1rem,1.5vw,1.25rem);color:#fff;display:block;margin-bottom:1vh}
+.steps .d{font-size:.88rem;color:var(--steel);line-height:1.75}
+
+/* tools */
+.tools{display:grid;grid-template-columns:repeat(3,1fr);gap:2vw;margin-top:2vh}
+.tools div{border:1px solid var(--line);border-radius:3px;padding:3vh 1.5vw;background:rgba(6,11,20,.80);display:flex;flex-direction:column;gap:1.1vh}
+.tools .n{font-weight:700;font-size:clamp(1rem,1.55vw,1.3rem);color:var(--gold);line-height:1.35}
+.tools .d{font-size:.88rem;color:var(--steel);line-height:1.8}
+.tools .tagline{font-family:var(--mono);font-size:.64rem;letter-spacing:.14em;color:var(--saber)}
+
+/* dossier */
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:4vw;margin-top:1vh;align-items:start}
+.dos .side{border-left:2px solid var(--line);padding-left:1.5vw}
+.dos .side.hit{border-left-color:var(--saber)}
+.dos .lbl{font-family:var(--mono);font-size:.68rem;letter-spacing:.16em;color:var(--steel);margin-bottom:1.6vh}
+.dos .side.hit .lbl{color:var(--saber)}
+.dos .q{font-size:clamp(.86rem,1.15vw,1rem);line-height:1.85;color:#A9BAC9;background:rgba(6,11,20,.86);border-left:2px solid var(--saber-dim);padding:1.4vh 1.2vw;white-space:pre-wrap;max-height:34vh;overflow:auto}
+.dos .txt{font-size:clamp(.92rem,1.3vw,1.1rem);line-height:1.85;color:#D3DEE8}
+.dos .txt b{font-weight:500;color:var(--gold)}
+a.link{display:inline-block;margin-top:2.6vh;font-family:var(--mono);font-size:.74rem;letter-spacing:.14em;color:var(--saber);text-decoration:none;border:1px solid var(--saber-dim);padding:.7em 1.2em;border-radius:2px}
+a.link:hover{border-color:var(--saber)}
+
+ul.plain{list-style:none;display:flex;flex-direction:column;gap:2.1vh;margin-top:1vh}
+ul.plain li{font-size:clamp(.98rem,1.45vw,1.26rem);line-height:1.65;padding-left:1.7em;position:relative;color:#C7D3DE}
+ul.plain li::before{content:'';position:absolute;left:0;top:.58em;width:.85em;height:2px;border-radius:2px;background:var(--saber);box-shadow:0 0 6px rgba(107,232,90,.7)}
+
+@media(max-width:840px){
+  .kit,.steps,.tools{grid-template-columns:1fr 1fr}
+  .dos{grid-template-columns:1fr;gap:3vh}
+  .dos .q{max-height:24vh}
+  .charslot{display:none}
+}
+</style>
+</head>
+<body>
+<div id="bg"></div><div id="bgveil"></div>
+<div id="stars"></div><div id="neb"></div>
+<div id="warp"></div>
+
+<!-- 1 -->
+<section class="slide on" id="open1">
+  <p>遠い昔、はるか彼方の<br>銀河系で……</p>
+</section>
+
+<!-- 2 -->
+<section class="slide" id="top">
+  <div id="grid"></div>
+  <div id="shock"></div>
+  <div id="topInner">
+    <div class="wordmark">見せる<span class="l2">力</span></div>
+    <div class="jptitle">見せる者の覚醒</div>
+    <div class="epline">EPISODE Ⅶ</div>
+  </div>
+</section>
+
+<!-- 3 -->
+<section class="slide" id="event">
+  <div class="badge">MONTHLY BRIEFING</div>
+  <div class="name">マンスリー<span>AI</span>オビワン</div>
+  <div class="when"><span>2026 / 9 / 12</span><span class="at">＠渡り鳥</span></div>
+  <div class="blade"></div>
+  <img id="hero" src="hero.png" alt="" onload="this.style.display='block'" onerror="this.remove()">
+</section>
+
+<!-- 4 -->
+<section class="slide" id="crawlSlide">
+  <div id="crawlView">
+    <div id="crawl">
+      <h3>EPISODE Ⅶ<br>見せる者の覚醒</h3>
+      <p>前回、我々は「集めろ」とだけ言われた。録音を、資料を、思いつきを。整理せず、分類せず、雑に放り込むだけでいいと。実際、箱は膨らんだ。</p>
+      <p>だが二ヶ月が過ぎ、多くの者が同じ場所で止まっていた。溜めた。読ませた。すごいと思った。そして、何も起きなかった。銀河には「詳しくなっただけの者」があふれていた。</p>
+      <p>その間、たった二ヶ月で二件の契約を決めた男がいた。使った道具は前回と同じ四つだけ。新しく買ったものは、ひとつも無い。</p>
+      <p>違いはひとつ。彼は溜めたものを、外に出して人に見せた。これは、その記録である……</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5 -->
+<section class="slide">
+  <div class="eyebrow">結論を先に</div>
+  <h2>今日やることは<br><em>「1人に見せる」</em>だけです</h2>
+  <p class="lead">うまく作らなくていい。完成していなくていい。<strong>動く画面を1枚、誰か1人に見せるところまでが今日の仕事</strong>で、決まるかどうかはその後に勝手に決まります。</p>
+  <div class="blade"></div>
+</section>
+
+<!-- 6 -->
+<section class="slide ep-div">
+  <div class="charslot"><img src="char-01.png" alt="" onload="this.style.display='block'" onerror="this.remove()"></div>
+  <div class="ep-no">CHAPTER I</div>
+  <h1>詳しくなった者の墓場</h1>
+  <p class="tag">まず、いちばん言いにくいことから言います。勉強した人ほど、動いていません。</p>
+  <div class="blade"></div>
+</section>
+
+<!-- 7 -->
+<section class="slide">
+  <div class="eyebrow">逆張り</div>
+  <h2>AIを勉強しても、<br><em>何も変わりません</em></h2>
+  <p class="lead">勉強会に出た。本を読んだ。ChatGPTとClaudeとGeminiを比べた。プロンプトも溜めた。<strong>それで受注が増えた人を、僕は見たことがありません。</strong></p>
+  <p class="sub">詳しくなることと、変わることは、別の話です。<em>この二つを混ぜている間は、一生このままです。</em></p>
+</section>
+
+<!-- 8 -->
+<section class="slide">
+  <div class="eyebrow">まず僕の恥から</div>
+  <h2>来ていた仕事を、<br><em>断りもせず4件</em>落としました</h2>
+  <div class="holo">
+    <div class="ttl">◈ INCIDENT REPORT</div>
+    <p>顧問の紹介サービスに登録すると、企業からオファーが届きます。僕のところにも届いていました。<b>4件。全部、返事をしないまま消えました。</b><br><br>断ったのではありません。<b>気づかなかった</b>んです。オファーの通知だけが別のメールアドレスに届いていて、そっちを見ていなかった。それだけ。</p>
+  </div>
+  <p class="sub">やる気の問題だと思いますか。違います。<strong>導線が2本に割れていただけ</strong>です。</p>
+</section>
+
+<!-- 9 -->
+<section class="slide">
+  <div class="eyebrow">ここが今日の一番の学び</div>
+  <h2>動けない人は、<br>たいてい<em>根性ではなく<br>導線が壊れている</em></h2>
+  <p class="lead">「やりたいけど時間がなくて」と言う人の話を分解すると、ほぼ全部ここに着きます。<strong>やる気を足すのではなく、漏れている線を1本、機械に持たせる。</strong></p>
+  <p class="sub">人力で守るルールは必ず抜けます。<em>抜けた自分を責めても、来月また抜けます。</em></p>
+</section>
+
+<!-- 10 -->
+<section class="slide ep-div">
+  <div class="charslot"><img src="char-02.png" alt="" onload="this.style.display='block'" onerror="this.remove()"></div>
+  <div class="ep-no">CHAPTER II</div>
+  <h1>効いたのは3つだけ</h1>
+  <p class="tag">この二ヶ月で実際に前へ進んだ案件を全部並べて、共通するものだけを抜きました。</p>
+  <div class="blade"></div>
+</section>
+
+<!-- 11 -->
+<section class="slide">
+  <div class="eyebrow">因数分解</div>
+  <h2>3つを、ぐるぐる回す</h2>
+  <div class="steps">
+    <div><span class="s">その1</span><span class="n">見せる</span><span class="d">その場でデモを作って見せる。体感した相手には、競合が残らない</span></div>
+    <div><span class="s">その2</span><span class="n">言い直す</span><span class="d">相手が言った課題を、自分の言葉で定義し直す。案件名は課題ではない</span></div>
+    <div><span class="s">その3</span><span class="n">その場で答える</span><span class="d">持ち帰らない。精度より速度。持ち帰ると熱が冷める</span></div>
+  </div>
+  <p class="sub">この3つ以外は、正直どうでもよかった。<em>順番も関係ありません。どれか1つでも刺さります。</em></p>
+</section>
+
+<!-- 12 -->
+<section class="slide">
+  <div class="eyebrow">逆に、効かなかったもの</div>
+  <h2>資格も、実績表も、<br><em>プロフィールも</em></h2>
+  <p class="lead">僕は資格を31個持っています。実績も並べられます。<strong>この3つの前では、1ミリも効いていません。</strong></p>
+  <p class="sub">相手が動いたのは、いつも<em>画面を見た瞬間</em>か、<em>自分の悩みを言い当てられた瞬間</em>でした。紙を見た瞬間ではありません。</p>
+</section>
+
+<!-- 13 -->
+<section class="slide ep-div">
+  <div class="charslot"><img src="char-03.png" alt="" onload="this.style.display='block'" onerror="this.remove()"></div>
+  <div class="ep-no">CHAPTER III</div>
+  <h1>三つの記録</h1>
+  <p class="tag">業種はバラバラです。製造、水産、物流。起きたことは同じでした。</p>
+  <div class="blade"></div>
+</section>
+
+<!-- 14 -->
+<section class="slide">
+  <div class="eyebrow">DATA FILE 01 ／ 製造業</div>
+  <h2>面談でデモを見せたら、<br><em>6日で決まった</em></h2>
+  <div class="holo">
+    <div class="ttl">◈ TRANSMISSION LOG</div>
+    <p>オンラインの初回面談。会社の説明はそこそこに、<b>その場で画面を出しました。</b>専務と部長が前のめりになった。<br><br>同席していた紹介会社の担当者から、翌日こう来ました。「デモを交えたご説明に感動されており、極めて前向きです」。<b>面談から契約まで6日。</b></p>
+  </div>
+  <p class="sub">喋った内容ではありません。<strong>動いている画面を見た</strong>から決まりました。</p>
+</section>
+
+<!-- 15 -->
+<section class="slide">
+  <div class="eyebrow">DATA FILE 02 ／ 水産</div>
+  <h2>見せられなかったので、<br><em>その日のうちに作って送った</em></h2>
+  <div class="holo">
+    <div class="ttl">◈ TRANSMISSION LOG</div>
+    <p>1時間の面談。準備が間に合わず、デモを見せられませんでした。<b>終わってから作りました。</b>全部ダミーデータの、予実が見えるだけの画面。その日のうちに送った。<br><br>返ってきた言葉。「あの短時間のヒアリングで、ここまで出来てしまうのは驚きです」。<b>次の打合せに同席してほしい</b>と頼まれました。</p>
+  </div>
+  <p class="sub">完成度ではありません。<em>その日のうち</em>だから効きました。<strong>1週間後なら、ただの資料です。</strong></p>
+</section>
+
+<!-- 16 -->
+<section class="slide">
+  <div class="eyebrow">DATA FILE 03 ／ 物流</div>
+  <h2>案件名を<em>疑って</em>、<br>返信1本で動いた</h2>
+  <div class="holo">
+    <div class="ttl">◈ TRANSMISSION LOG</div>
+    <p>届いた案件名は「データ分析業務の効率化」。そのまま受け取れば、分析ツールの話になります。<b>受け取りませんでした。</b><br><br>返したのはこうです。「実際の課題は、足りないデータの中で仮説を立てるベテラン営業の頭の中が、言語化されていないことではありませんか」。<b>返信1本で、担当者が動きました。</b></p>
+  </div>
+  <p class="sub">相手は課題を知っています。<em>言葉にできていないだけ</em>です。<strong>言い直す人が、いなかっただけ。</strong></p>
+</section>
+
+<!-- 17 -->
+<section class="slide">
+  <div class="eyebrow">3つの共通点</div>
+  <h2>全部、<em>溜めたものを<br>外に出した瞬間</em>に動いた</h2>
+  <p class="lead">前回の言葉で言えば、<strong>あふれたのは、外に出したときだけ</strong>でした。箱の中で膨らんでいる間は、1件も動いていません。</p>
+  <p class="sub">集めるのは準備です。<em>準備は、成果ではありません。</em></p>
+</section>
+
+<!-- 18 -->
+<section class="slide">
+  <div class="eyebrow">もう1つ、いま一番刺さっている型</div>
+  <h2>「独学で進めてきたが、<br><em>社員に任せたら進まない</em>」</h2>
+  <p class="lead">いま相談が来る会社の入口は、ほぼ全部これです。<strong>社長が一人で没頭して、渡す段になって止まる。</strong></p>
+  <p class="sub">この部屋にいる人ほど当てはまります。<em>自分でできることと、人に渡せることは10倍違う。</em>教える人を教えるのは、さらに3倍です。</p>
+</section>
+
+<!-- 19 -->
+<section class="slide ep-div">
+  <div class="charslot"><img src="char-04.png" alt="" onload="this.style.display='block'" onerror="this.remove()"></div>
+  <div class="ep-no">CHAPTER IV</div>
+  <h1>で、あなたは</h1>
+  <p class="tag">ここから先は、聞く時間ではありません。手を動かす時間です。</p>
+  <div class="blade"></div>
+</section>
+
+<!-- 20 -->
+<section class="slide">
+  <div class="eyebrow">今日の問い</div>
+  <h2>あなたは今日、<br><em>誰に、何を</em><br>見せますか</h2>
+  <p class="lead">名前が出てこないなら、集めている対象がずれています。<strong>相手が先で、道具は後です。</strong></p>
+  <p class="sub">午後は、この1人を紙に書くところから始めます。<em>実名で書いてもらいます。</em></p>
+</section>
+
+<!-- 21 -->
+<section class="slide">
+  <div class="eyebrow">利益と回収</div>
+  <h2>道具代は<em>月に数千円</em>。<br>増えた原価は、それだけ</h2>
+  <div class="kit">
+    <div><span class="k">01</span><span class="n">登録して6週間</span><span class="d">紹介サービス経由で1件、契約が決まった</span></div>
+    <div><span class="k">02</span><span class="n">面談2回</span><span class="d">別ルートでもう1件。こちらは訪問まで進んだ</span></div>
+    <div><span class="k">03</span><span class="n">直近2日で5件</span><span class="d">新しい相談が一気に増えた。デモの話が回っている</span></div>
+    <div><span class="k">04</span><span class="n">買ったもの ゼロ</span><span class="d">道具は前回の4つのまま。録音・資料フォルダ・Obsidian・Claude Code</span></div>
+  </div>
+  <p class="sub">才能の話をしていません。<strong>見せたか、見せなかったか</strong>の話をしています。</p>
+</section>
+
+<!-- 22 -->
+<section class="slide">
+  <div class="eyebrow">最初の一歩</div>
+  <h2>3つだけ、今日やる</h2>
+  <div class="steps">
+    <div><span class="s">01</span><span class="n">1人に見せる</span><span class="d">完成していなくていい。動く画面を1枚。相手は今日この場で決める</span></div>
+    <div><span class="s">02</span><span class="n">課題を1回だけ言い直す</span><span class="d">相手が言った言葉をそのまま受け取らない。言い直しはAIにやらせる</span></div>
+    <div><span class="s">03</span><span class="n">漏れる線を1本、機械に渡す</span><span class="d">根性で守っているものを1つだけ選んで、手放す</span></div>
+  </div>
+  <p class="sub">全部やらなくていい。<em>1つでいい。</em></p>
+</section>
+
+<!-- 23 -->
+<section class="slide">
+  <div class="eyebrow">このあとの流れ</div>
+  <h2>ここから先は<br><em>喋りません</em></h2>
+  <div class="tools">
+    <div><span class="tagline">WORK 01</span><span class="n">見せる相手を書く</span><span class="d">実名で1人。その人の課題を1行で。紙を配ります</span></div>
+    <div><span class="tagline">WORK 02</span><span class="n">その1行を言い直す</span><span class="d">AIに10回「違う」と言う。9回目から変わります</span></div>
+    <div><span class="tagline">HANDS ON</span><span class="n">動く画面を1枚</span><span class="d">喋って、投げて、直す。コードは書きません</span></div>
+  </div>
+  <p class="sub">夕方、何人かに画面を出してもらいます。<strong>明日は、その画面を誰に見せるかを全員に言ってもらいます。</strong></p>
+</section>
+
+<!-- 24 -->
+<section class="slide" style="align-items:center;text-align:center;justify-content:center">
+  <div class="wordmark" style="font-size:clamp(2rem,7vw,5rem)">先に見せる。</div>
+  <div class="jptitle" style="margin-top:3vh">決まるのは、あとです</div>
+  <p class="sub" style="margin-top:5vh;color:#4E6070">見せる相手 ／ 言い直した1行 ／ 動く画面1枚</p>
+</section>
+
+<audio id="bgm" src="../bgm.mp3" loop preload="auto"></audio>
+<div id="hud"><span class="ep" id="epLbl"></span><span id="count"></span></div>
+
+<script>
+/* ---- audio ---- */
+let AC=null,master=null,drone=null,soundOn=true;
+function initAudio(){
+  if(AC)return;
+  try{AC=new (window.AudioContext||window.webkitAudioContext)()}catch(err){return}
+  master=AC.createGain();master.gain.value=.55;master.connect(AC.destination);
+}
+function noiseBuf(sec){
+  const n=Math.floor(AC.sampleRate*sec),b=AC.createBuffer(1,n,AC.sampleRate),d=b.getChannelData(0);
+  for(let k=0;k<n;k++)d[k]=(Math.random()*2-1)*(1-k/n);
+  return b;
+}
+function whoosh(){
+  if(!AC||!soundOn)return;
+  const s=AC.createBufferSource();s.buffer=noiseBuf(.5);
+  const f=AC.createBiquadFilter();f.type='bandpass';f.Q.value=1.1;
+  f.frequency.setValueAtTime(320,AC.currentTime);
+  f.frequency.exponentialRampToValueAtTime(2600,AC.currentTime+.34);
+  const g=AC.createGain();g.gain.setValueAtTime(.0001,AC.currentTime);
+  g.gain.exponentialRampToValueAtTime(.16,AC.currentTime+.05);
+  g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+.5);
+  s.connect(f);f.connect(g);g.connect(master);s.start();s.stop(AC.currentTime+.55);
+}
+function riser(){
+  if(!AC||!soundOn)return;
+  const t=AC.currentTime;
+  const o=AC.createOscillator();o.type='sawtooth';
+  o.frequency.setValueAtTime(38,t);o.frequency.exponentialRampToValueAtTime(180,t+3.2);
+  const f=AC.createBiquadFilter();f.type='lowpass';
+  f.frequency.setValueAtTime(180,t);f.frequency.exponentialRampToValueAtTime(2200,t+3.2);
+  const g=AC.createGain();g.gain.setValueAtTime(.0001,t);
+  g.gain.exponentialRampToValueAtTime(.26,t+2.6);
+  g.gain.exponentialRampToValueAtTime(.0001,t+4.2);
+  o.connect(f);f.connect(g);g.connect(master);o.start(t);o.stop(t+4.3);
+  const s=AC.createBufferSource();s.buffer=noiseBuf(1.4);
+  const nf=AC.createBiquadFilter();nf.type='highpass';nf.frequency.value=900;
+  const ng=AC.createGain();ng.gain.setValueAtTime(.22,t);ng.gain.exponentialRampToValueAtTime(.0001,t+1.4);
+  s.connect(nf);nf.connect(ng);ng.connect(master);s.start(t);
+}
+function startDrone(){
+  if(!AC||drone||!soundOn)return;
+  drone={};
+  const g=AC.createGain();g.gain.value=0;g.connect(master);
+  [41.2,61.7,82.4].forEach((hz,idx)=>{
+    const o=AC.createOscillator();o.type=idx===2?'triangle':'sine';o.frequency.value=hz;
+    const og=AC.createGain();og.gain.value=idx===0?.5:.22;
+    o.connect(og);og.connect(g);o.start();
+  });
+  g.gain.linearRampToValueAtTime(.10,AC.currentTime+3);
+  drone.g=g;
+}
+const bgm=document.getElementById('bgm');
+let bgmOK=false;
+bgm.addEventListener('canplay',()=>{bgmOK=true});
+bgm.addEventListener('error',()=>{bgmOK=false});
+function audioGesture(){
+  initAudio();
+  if(AC&&AC.state==='suspended')AC.resume();
+  startDrone();
+  if(bgmOK&&soundOn&&bgm.paused){bgm.volume=.35;bgm.play().catch(()=>{})}
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='m'||e.key==='M'){
+    soundOn=!soundOn;
+    if(master)master.gain.value=soundOn?.55:0;
+    if(bgmOK){soundOn?bgm.play().catch(()=>{}):bgm.pause()}
+  }
+});
+
+const warp=document.getElementById('warp');
+const bg=document.getElementById('bg');
+const bgPool=[];let lastBg='';
+for(let k=1;k<=12;k++){
+  const src='../'+k+'.png';const im=new Image();
+  im.onload=()=>{bgPool.push(src);if(bgPool.length===1)setBg()};
+  im.src=src;
+}
+function setBg(){
+  if(!bgPool.length)return;
+  let pick=bgPool[Math.floor(Math.random()*bgPool.length)];
+  if(bgPool.length>1){let g=0;while(pick===lastBg&&g++<8)pick=bgPool[Math.floor(Math.random()*bgPool.length)]}
+  lastBg=pick;
+  bg.style.backgroundImage="url('"+pick+"')";
+  bg.classList.add('on');
+}
+for(let k=0;k<26;k++){const s=document.createElement('i');s.style.transform='rotate('+(k*13.8)+'deg)';warp.appendChild(s)}
+const slides=[...document.querySelectorAll('.slide')];
+const count=document.getElementById('count');
+const epLbl=document.getElementById('epLbl');
+let i=0;
+function show(n,jump){
+  const t=Math.max(0,Math.min(slides.length-1,n));
+  if(t===i&&jump!=='init')return;
+  i=t;
+  slides.forEach((s,k)=>s.classList.toggle('on',k===i));
+  count.textContent=String(i+1).padStart(2,'0')+' / '+slides.length;
+  epLbl.textContent=i<4?'':'マンスリーAIオビワン';
+  count.title='F:全画面  M:音のON/OFF  [ ]:背景の濃さ';
+  if(jump!=='init'){warp.classList.remove('go');void warp.offsetWidth;warp.classList.add('go');setBg();audioGesture();whoosh();if(i===1)riser()}
+}
+let bgOp=.85;
+document.addEventListener('keydown',e=>{
+  if(e.key==='['||e.key===']'){
+    bgOp=Math.max(0,Math.min(.5,bgOp+(e.key===']'?.03:-.03)));
+    document.getElementById('bg').style.opacity=bgOp;
+  }
+});
+document.addEventListener('keydown',e=>{
+  if(['ArrowRight','ArrowDown',' ','PageDown','Enter'].includes(e.key)){e.preventDefault();show(i+1)}
+  if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();show(i-1)}
+  if(e.key==='Home')show(0);
+  if(e.key==='End')show(slides.length-1);
+  if(e.key==='f'||e.key==='F'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}
+});
+document.addEventListener('click',e=>{
+  if(e.target.closest('a')||e.target.closest('.q'))return;
+  show(e.clientX<window.innerWidth*0.25?i-1:i+1);
+});
+let sx=null;
+document.addEventListener('touchstart',e=>sx=e.touches[0].clientX,{passive:true});
+document.addEventListener('touchend',e=>{if(sx===null)return;const d=e.changedTouches[0].clientX-sx;if(Math.abs(d)>50)show(d<0?i+1:i-1);sx=null},{passive:true});
+show(0,'init');
+</script>
+</body>
+</html>
